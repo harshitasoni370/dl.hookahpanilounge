@@ -1,0 +1,214 @@
+{
+  "featuredId": "pictionary",
+  "categories": [
+    {
+      "id": "all",
+      "label": "All Games"
+    },
+    {
+      "id": "family",
+      "label": "Family"
+    },
+    {
+      "id": "kids",
+      "label": "Kids"
+    },
+    {
+      "id": "strategy",
+      "label": "Strategy"
+    },
+    {
+      "id": "party",
+      "label": "Party"
+    },
+    {
+      "id": "two-players",
+      "label": "Two Players"
+    },
+    {
+      "id": "quick",
+      "label": "Quick Games"
+    },
+    {
+      "id": "card",
+      "label": "Card Games"
+    }
+  ],
+  "games": [
+    {
+      "id": "uno",
+      "name": "UNO",
+      "players": "2 - 10",
+      "duration": "15 - 30 min",
+      "difficulty": "Easy",
+      "status": "available",
+      "categories": [
+        "family",
+        "party",
+        "quick",
+        "card"
+      ],
+      "howToPlay": "Match colours or numbers, play action cards, and be the first to empty your hand. Don't forget to shout UNO!",
+      "cover": "uno"
+    },
+    {
+      "id": "jenga",
+      "name": "JENGA",
+      "players": "1 - 8",
+      "duration": "20 - 30 min",
+      "difficulty": "Easy",
+      "status": "available",
+      "categories": [
+        "family",
+        "party",
+        "quick"
+      ],
+      "howToPlay": "Take turns removing one block at a time from the tower and stacking it on top. The player who topples the tower loses.",
+      "cover": "jenga"
+    },
+    {
+      "id": "chess",
+      "name": "CHESS",
+      "players": "2",
+      "duration": "30 - 60 min",
+      "difficulty": "Medium",
+      "status": "available",
+      "categories": [
+        "strategy",
+        "two-players"
+      ],
+      "howToPlay": "Move your pieces strategically to checkmate your opponent's king. Plan ahead and control the board.",
+      "cover": "chess"
+    },
+    {
+      "id": "monopoly",
+      "name": "MONOPOLY",
+      "players": "2 - 8",
+      "duration": "60 - 180 min",
+      "difficulty": "Easy",
+      "status": "available",
+      "categories": [
+        "family",
+        "strategy"
+      ],
+      "howToPlay": "Buy properties, collect rent, and bankrupt your opponents. Trade wisely to build your empire.",
+      "cover": "monopoly"
+    },
+    {
+      "id": "scrabble",
+      "name": "SCRABBLE",
+      "players": "2 - 4",
+      "duration": "45 - 90 min",
+      "difficulty": "Medium",
+      "status": "available",
+      "categories": [
+        "family",
+        "strategy",
+        "two-players"
+      ],
+      "howToPlay": "Form words on the board using letter tiles. Score points based on letter values and premium squares.",
+      "cover": "scrabble"
+    },
+    {
+      "id": "connect4",
+      "name": "CONNECT 4",
+      "players": "2",
+      "duration": "10 - 20 min",
+      "difficulty": "Easy",
+      "status": "in-use",
+      "categories": [
+        "family",
+        "kids",
+        "quick",
+        "two-players"
+      ],
+      "howToPlay": "Drop discs into the grid and be the first to connect four of your colour in a row \u2014 horizontally, vertically, or diagonally.",
+      "cover": "connect4"
+    },
+    {
+      "id": "ludo",
+      "name": "LUDO",
+      "players": "2 - 4",
+      "duration": "20 - 40 min",
+      "difficulty": "Easy",
+      "status": "available",
+      "categories": [
+        "family",
+        "kids"
+      ],
+      "howToPlay": "Roll the dice and race your tokens around the board to home. Capture opponents to send them back to start.",
+      "cover": "ludo"
+    },
+    {
+      "id": "pictionary",
+      "name": "PICTIONARY",
+      "players": "3 - 16",
+      "duration": "30 - 60 min",
+      "difficulty": "Easy",
+      "status": "available",
+      "categories": [
+        "party",
+        "family"
+      ],
+      "howToPlay": "Draw clues for your team without using words or gestures. Guess correctly before the timer runs out.",
+      "cover": "pictionary"
+    },
+    {
+      "id": "catan",
+      "name": "CATAN",
+      "players": "3 - 4",
+      "duration": "60 - 120 min",
+      "difficulty": "Medium",
+      "status": "available",
+      "categories": [
+        "strategy"
+      ],
+      "howToPlay": "Collect resources, build settlements and roads, and race to 10 victory points on the island of Catan.",
+      "cover": "catan"
+    },
+    {
+      "id": "cards-against",
+      "name": "CARDS AGAINST HUMANITY",
+      "players": "4 - 10",
+      "duration": "30 - 90 min",
+      "difficulty": "Easy",
+      "status": "available",
+      "categories": [
+        "party",
+        "card"
+      ],
+      "howToPlay": "Fill in blank cards with the funniest answers. One player judges each round \u2014 adult humour only.",
+      "cover": "cards"
+    },
+    {
+      "id": "twister",
+      "name": "TWISTER",
+      "players": "2 - 4",
+      "duration": "15 - 30 min",
+      "difficulty": "Easy",
+      "status": "available",
+      "categories": [
+        "party",
+        "kids",
+        "family"
+      ],
+      "howToPlay": "Spin the dial and place hands or feet on coloured circles. Last person standing without falling wins.",
+      "cover": "twister"
+    },
+    {
+      "id": "exploding-kittens",
+      "name": "EXPLODING KITTENS",
+      "players": "2 - 5",
+      "duration": "15 - 20 min",
+      "difficulty": "Easy",
+      "status": "in-use",
+      "categories": [
+        "party",
+        "card",
+        "quick"
+      ],
+      "howToPlay": "Play cards, avoid exploding kittens, and use defuse cards to stay in the game. Last player alive wins.",
+      "cover": "kittens"
+    }
+  ]
+}

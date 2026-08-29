@@ -1,0 +1,146 @@
+{
+  "featuredId": "fc25",
+  "categories": [
+    { "id": "all", "label": "All Games" },
+    { "id": "action", "label": "Action" },
+    { "id": "sports", "label": "Sports" },
+    { "id": "racing", "label": "Racing" },
+    { "id": "fighting", "label": "Fighting" },
+    { "id": "multiplayer", "label": "Multiplayer" },
+    { "id": "adventure", "label": "Adventure" }
+  ],
+  "games": [
+    {
+      "id": "fc25",
+      "name": "EA SPORTS FC",
+      "players": "1 - 4",
+      "duration": "15 - 45 min",
+      "difficulty": "Easy",
+      "status": "available",
+      "categories": ["sports", "multiplayer"],
+      "howToPlay": "Pick your clubs, set a match length, and compete head-to-head or co-op. Controllers are ready at the console.",
+      "cover": "fc25"
+    },
+    {
+      "id": "cod",
+      "name": "CALL OF DUTY",
+      "players": "1 - 4",
+      "duration": "20 - 60 min",
+      "difficulty": "Medium",
+      "status": "available",
+      "categories": ["action", "multiplayer"],
+      "howToPlay": "Jump into multiplayer matches or campaign missions. Ask staff for the current game mode and party setup.",
+      "cover": "cod"
+    },
+    {
+      "id": "gran-turismo",
+      "name": "GRAN TURISMO",
+      "players": "1 - 2",
+      "duration": "20 - 45 min",
+      "difficulty": "Medium",
+      "status": "available",
+      "categories": ["racing", "multiplayer"],
+      "howToPlay": "Choose a car and track, then race solo or split-screen. Perfect for quick competitive sessions.",
+      "cover": "gran-turismo"
+    },
+    {
+      "id": "nba2k",
+      "name": "NBA 2K",
+      "players": "1 - 4",
+      "duration": "20 - 45 min",
+      "difficulty": "Easy",
+      "status": "available",
+      "categories": ["sports", "multiplayer"],
+      "howToPlay": "Select your teams and tip off. Play quick matches or full quarters with friends on the same console.",
+      "cover": "nba2k"
+    },
+    {
+      "id": "mortal-kombat",
+      "name": "MORTAL KOMBAT",
+      "players": "1 - 2",
+      "duration": "10 - 30 min",
+      "difficulty": "Medium",
+      "status": "in-use",
+      "categories": ["fighting", "multiplayer", "action"],
+      "howToPlay": "Choose a fighter and battle in versus mode. Best for short, intense head-to-head rounds.",
+      "cover": "mortal-kombat"
+    },
+    {
+      "id": "spiderman",
+      "name": "SPIDER-MAN",
+      "players": "1",
+      "duration": "30 - 60 min",
+      "difficulty": "Easy",
+      "status": "available",
+      "categories": ["action", "adventure"],
+      "howToPlay": "Swing through the city, take on missions, and enjoy the story. Ideal for solo sessions.",
+      "cover": "spiderman"
+    },
+    {
+      "id": "tekken",
+      "name": "TEKKEN",
+      "players": "1 - 2",
+      "duration": "10 - 30 min",
+      "difficulty": "Medium",
+      "status": "available",
+      "categories": ["fighting", "multiplayer"],
+      "howToPlay": "Pick a character and duel in versus mode. Great warm-up fights between courses.",
+      "cover": "tekken"
+    },
+    {
+      "id": "nfs",
+      "name": "NEED FOR SPEED",
+      "players": "1 - 2",
+      "duration": "15 - 40 min",
+      "difficulty": "Easy",
+      "status": "available",
+      "categories": ["racing", "action"],
+      "howToPlay": "Jump into street races, customize your ride vibe, and chase the podium with friends.",
+      "cover": "nfs"
+    },
+    {
+      "id": "fortnite",
+      "name": "FORTNITE",
+      "players": "1 - 4",
+      "duration": "20 - 45 min",
+      "difficulty": "Easy",
+      "status": "available",
+      "categories": ["action", "multiplayer"],
+      "howToPlay": "Drop in, build, and compete in squads or solos. Staff can help with party and account setup.",
+      "cover": "fortnite"
+    },
+    {
+      "id": "rocket-league",
+      "name": "ROCKET LEAGUE",
+      "players": "1 - 4",
+      "duration": "15 - 30 min",
+      "difficulty": "Easy",
+      "status": "available",
+      "categories": ["sports", "racing", "multiplayer"],
+      "howToPlay": "Soccer with cars — score goals in short matches. Perfect for mixed-skill groups.",
+      "cover": "rocket-league"
+    },
+    {
+      "id": "god-of-war",
+      "name": "GOD OF WAR",
+      "players": "1",
+      "duration": "30 - 60 min",
+      "difficulty": "Medium",
+      "status": "in-use",
+      "categories": ["action", "adventure"],
+      "howToPlay": "Follow Kratos through epic combat and story missions. Best as a focused solo session.",
+      "cover": "god-of-war"
+    },
+    {
+      "id": "minecraft",
+      "name": "MINECRAFT",
+      "players": "1 - 4",
+      "duration": "20 - 60 min",
+      "difficulty": "Easy",
+      "status": "available",
+      "categories": ["adventure", "multiplayer"],
+      "howToPlay": "Build, explore, and survive together. Great for casual creative sessions with friends.",
+      "cover": "minecraft"
+    }
+  ]
+}
