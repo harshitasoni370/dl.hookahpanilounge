@@ -49,7 +49,7 @@ export default function Privilegemembership() {
 
             <a
               className="offer-sheet__cta"
-              href="https://wa.me/971585969710?text=Hi%2C%20I%27d%20like%20to%20join%20F%26F%20Privilege%20Membership"
+              href="https://wa.me/971509002202?text=Hi%2C%20I%27d%20like%20to%20join%20F%26F%20Privilege%20Membership"
               target="_blank"
               rel="noopener noreferrer"
             >

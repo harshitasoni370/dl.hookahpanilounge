@@ -1,6 +1,10 @@
 import { useEffect, useRef } from "react";
 import { pages } from "./pages";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { fetchQrContext } from "./store/slices/qrContextSlice";
+
+const MENU_APP_URL = import.meta.env.VITE_MENU_APP_URL || "https://app.thedesirelounge.com";
 
 function normalizePath(path) {
   if (!path || path === "/index.html" || path === "/index") return "/";
@@ -10,9 +14,13 @@ function normalizePath(path) {
 export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const rootRef = useRef(null);
   const path = normalizePath(location.pathname);
   const html = pages[path] ?? pages["/"];
+  useEffect(() => {
+    dispatch(fetchQrContext(location.search));
+  }, [location.search]);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -43,7 +51,12 @@ export default function App() {
 
     const links = [...root.querySelectorAll("a")];
     const onLink = (e) => {
-      const href = e.currentTarget.getAttribute("href");
+      const link = e.currentTarget;
+      let href = link.getAttribute("href");
+      if (href?.startsWith(MENU_APP_URL) && location.search) {
+        href = `${MENU_APP_URL}/${location.search}`;
+        link.setAttribute("href", href);
+      }
       const isInternalPath = typeof href === "string" && href.startsWith("/") && !href.startsWith("//");
 
       if (isInternalPath) {
@@ -86,6 +99,11 @@ export default function App() {
       document.body.classList.remove("lounge-drawer-open");
     };
   }, [path, location.hash]);
+
+  if (path === "/menu") {
+    window.location.replace(`${MENU_APP_URL}/${location.search}`);
+    return null;
+  }
 
   return <div ref={rootRef} className="lounge-page" dangerouslySetInnerHTML={{ __html: html }} />;
 }

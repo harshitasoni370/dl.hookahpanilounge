@@ -46,7 +46,7 @@ export default function Privacy() {
                 <p>
                   Venue: Ground Floor, Green Tower, Baniyas Road, Riggat Al Buteen, Deira, Dubai,
                   UAE. Phone / WhatsApp:
-                  <a href="tel:+971585969710">+971 58 596 9710</a>.
+                  <a href="tel:+971509002202">+971 50 900 2202</a>.
                 </p>
                 <p>
                   We handle personal data in line with the UAE Federal Decree-Law No. 45 of 2021
@@ -203,9 +203,9 @@ export default function Privacy() {
                   <p>For privacy questions or data requests, message the Desire Sheesha Lounge team.</p>
                   <p>
                     WhatsApp / phone:
-                    <a href="tel:+971585969710">+971 58 596 9710</a>
+                    <a href="tel:+971509002202">+971 50 900 2202</a>
                     Â·
-                    <a href="https://wa.me/971585969710" target="_blank" rel="noopener noreferrer">Chat on WhatsApp</a>
+                    <a href="https://wa.me/971509002202" target="_blank" rel="noopener noreferrer">Chat on WhatsApp</a>
                   </p>
                   <p>
                     Address: Ground Floor, Green Tower, Baniyas Road, Riggat Al Buteen, Deira, Dubai

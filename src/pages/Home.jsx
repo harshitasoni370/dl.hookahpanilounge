@@ -74,7 +74,7 @@ export default function Home() {
 
               <a
                 className="lounge-card"
-                href="https://wa.me/971585969710?text=Hi%2C%20I%27d%20like%20the%20Wi-Fi%20details"
+                href="https://wa.me/971509002202?text=Hi%2C%20I%27d%20like%20the%20Wi-Fi%20details"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -465,7 +465,7 @@ export default function Home() {
 
             <a
               className="lounge-social__item"
-              href="https://wa.me/971585969710"
+              href="https://wa.me/971509002202"
               target="_blank"
               rel="noopener noreferrer"
             >

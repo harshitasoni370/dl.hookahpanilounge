@@ -138,7 +138,7 @@ async function init() {
     e.preventDefault();
     if (requireCartOrRedirect()) {
       window.location.href =
-        "https://wa.me/971585969710?text=Hi%2C%20I%27d%20like%20to%20place%20an%20order";
+        "https://wa.me/971509002202?text=Hi%2C%20I%27d%20like%20to%20place%20an%20order";
     }
   });
 }

@@ -202,7 +202,7 @@ a.chip {
       rgba(0, 0, 0, 0.35) 70%,
       rgba(0, 0, 0, 0.82) 100%
     ),
-    url("../images/hero.webp");
+    url("/assets/images/hero.webp");
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center center;
@@ -1246,7 +1246,7 @@ a.chip {
       rgba(0, 0, 0, 0.35) 70%,
       rgba(0, 0, 0, 0.82) 100%
     ),
-    url("../images/hero.webp");
+    url("/assets/images/hero.webp");
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center center;
@@ -2067,7 +2067,7 @@ a.chip {
       rgba(0, 0, 0, 0.35) 70%,
       rgba(0, 0, 0, 0.82) 100%
     ),
-    url("../images/hero.webp");
+    url("/assets/images/hero.webp");
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center center;
@@ -3325,7 +3325,7 @@ a.chip {
 }
 
 .home-hero__slide--primary {
-  background-image: url("../images/index-hero-bg.webp");
+  background-image: url("/assets/images/index-hero-bg.webp");
 }
 
 .home-hero__slide.is-active {
@@ -4116,7 +4116,7 @@ a.chip {
   position: absolute;
   inset: 0;
   background-color: #000;
-  background-image: url("../images/index-hero-bg.webp");
+  background-image: url("/assets/images/index-hero-bg.webp");
   background-size: cover;
   background-position: center center;
   transform: scale(1.06);

@@ -90,7 +90,7 @@ function createModal({ title, bodyHtml, confirmLabel, onConfirm }) {
 }
 
 const CHECKOUT_URL =
-  "https://wa.me/971585969710?text=Hi%2C%20I%27d%20like%20to%20book%20a%20PS5%20session";
+  "https://wa.me/971509002202?text=Hi%2C%20I%27d%20like%20to%20book%20a%20PS5%20session";
 
 function goToCheckout() {
   window.open(CHECKOUT_URL, "_blank", "noopener,noreferrer");

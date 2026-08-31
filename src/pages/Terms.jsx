@@ -94,7 +94,7 @@ export default function Terms() {
                   Tables can be reserved through
                   <a href="https://thedesirelounge.com/#reserve" rel="noopener noreferrer">thedesirelounge.com</a>,
                   WhatsApp, or in person. We confirm bookings on WhatsApp at
-                  <a href="https://wa.me/971585969710">+971 58 596 9710</a>.
+                  <a href="https://wa.me/971509002202">+971 50 900 2202</a>.
                 </p>
                 <ul>
                   <li>Please provide accurate name, phone, guest count, date and time. Date of birth may be requested for age-restricted services and birthday benefits.</li>
@@ -233,9 +233,9 @@ export default function Terms() {
                   <p>Questions about these terms? Reach the team any time â we are open 24/7.</p>
                   <p>
                     WhatsApp / phone:
-                    <a href="tel:+971585969710">+971 58 596 9710</a>
+                    <a href="tel:+971509002202">+971 50 900 2202</a>
                     Â·
-                    <a href="https://wa.me/971585969710" target="_blank" rel="noopener noreferrer">Chat on WhatsApp</a>
+                    <a href="https://wa.me/971509002202" target="_blank" rel="noopener noreferrer">Chat on WhatsApp</a>
                   </p>
                   <p>
                     Address: Ground Floor, Green Tower, Baniyas Road, Riggat Al Buteen, Deira, Dubai

@@ -1,14 +1,14 @@
 import { $, showToast, initCommon } from "../common.js";
 
 const BOOK_URLS = {
-  any: "https://wa.me/971585969710?text=Hi%2C%20I%27d%20like%20to%20book%20Make%20It%20Your%20Moment",
+  any: "https://wa.me/971509002202?text=Hi%2C%20I%27d%20like%20to%20book%20Make%20It%20Your%20Moment",
   screen:
-    "https://wa.me/971585969710?text=Hi%2C%20I%27d%20like%20to%20book%20Shine%20on%20Screen%20(AED%2050)",
-  pyro: "https://wa.me/971585969710?text=Hi%2C%20I%27d%20like%20to%20book%20Pyro%20Moment%20(AED%20100)",
+    "https://wa.me/971509002202?text=Hi%2C%20I%27d%20like%20to%20book%20Shine%20on%20Screen%20(AED%2050)",
+  pyro: "https://wa.me/971509002202?text=Hi%2C%20I%27d%20like%20to%20book%20Pyro%20Moment%20(AED%20100)",
   popper:
-    "https://wa.me/971585969710?text=Hi%2C%20I%27d%20like%20to%20book%20Party%20Popper%20Moment%20(AED%2050)",
+    "https://wa.me/971509002202?text=Hi%2C%20I%27d%20like%20to%20book%20Party%20Popper%20Moment%20(AED%2050)",
   grand:
-    "https://wa.me/971585969710?text=Hi%2C%20I%27d%20like%20to%20book%20The%20Grand%20Moment%20(AED%20175)",
+    "https://wa.me/971509002202?text=Hi%2C%20I%27d%20like%20to%20book%20The%20Grand%20Moment%20(AED%20175)",
 };
 
 function setDrawerOpen(open) {

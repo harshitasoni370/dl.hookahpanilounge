@@ -107,7 +107,7 @@ export default function Exclusiveoffers() {
 
             <a
               className="offer-sheet__cta"
-              href="https://wa.me/971585969710?text=Hi%2C%20I%27d%20like%20to%20know%20more%20about%20your%20Exclusive%20Offers"
+              href="https://wa.me/971509002202?text=Hi%2C%20I%27d%20like%20to%20know%20more%20about%20your%20Exclusive%20Offers"
               target="_blank"
               rel="noopener noreferrer"
             >

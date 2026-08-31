@@ -58,7 +58,7 @@ export default function Sundaybrunch() {
 
             <a
               className="offer-sheet__cta"
-              href="https://wa.me/971585969710?text=Hi%2C%20I%27d%20like%20to%20book%20Sunday%20Brunch"
+              href="https://wa.me/971509002202?text=Hi%2C%20I%27d%20like%20to%20book%20Sunday%20Brunch"
               target="_blank"
               rel="noopener noreferrer"
             >

@@ -1,14 +1,17 @@
 import Layout from '../components/layout/Layout'
 import { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchMenu, selectMenu } from '../store/slices/menuSlice'
+import { selectQrContext } from '../store/slices/qrContextSlice'
 
 export default function Menu() {
-  const [menuData, setMenuData] = useState(null)
+  const dispatch = useDispatch()
+  const menuData = useSelector(selectMenu)
+  const qrContext = useSelector(selectQrContext)
   const [selectedCategory, setSelectedCategory] = useState('breakfast')
 
   useEffect(() => {
-    fetch('/assets/data/menu.json')
-      .then(res => res.json())
-      .then(data => setMenuData(data))
+    dispatch(fetchMenu())
   }, [])
 
   if (!menuData) return <Layout><div>Loading...</div></Layout>
@@ -19,6 +22,11 @@ export default function Menu() {
   return (
     <Layout>
       <section className="menu-page">
+        {qrContext?.data && (
+          <div className="menu-context" data-qr-context={JSON.stringify(qrContext.data)}>
+            {qrContext.data.tableName || qrContext.data.name || qrContext.params?.name || ''}
+          </div>
+        )}
         <h1>{menuData.brand?.name}</h1>
         <p className="tagline">{menuData.brand?.tagline}</p>
 
