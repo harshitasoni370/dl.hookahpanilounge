@@ -7810,6 +7810,25 @@ a.lounge-highlight:hover {
   display: none;
 }
 
+.reserve-modal.is-inline {
+  position: relative;
+  inset: auto;
+  z-index: 1;
+  display: block;
+  min-height: 0;
+  padding: 1.5rem 0 0;
+}
+
+.reserve-modal.is-inline .reserve-modal__backdrop {
+  display: none;
+}
+
+.reserve-modal.is-inline .reserve-modal__dialog {
+  position: relative;
+  max-height: none;
+  overflow: visible;
+}
+
 .reserve-modal__backdrop {
   position: absolute;
   inset: 0;
@@ -9002,6 +9021,16 @@ body.reserve-modal-open {
   font-weight: 700;
 }
 
+.bg-card__availability-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.45rem;
+}
+
+.bg-card__availability-row .bg-card__status {
+  flex: 1;
+}
+
 .bg-card__status-dot {
   width: 8px;
   height: 8px;
@@ -9031,6 +9060,16 @@ body.reserve-modal-open {
   box-shadow: 0 0 0 3px rgba(201, 162, 75, 0.2);
 }
 
+.bg-card__btn--status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 30px;
+  padding: 0.3rem 0.55rem;
+  white-space: nowrap;
+}
+
 .bg-card__actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -9038,7 +9077,17 @@ body.reserve-modal-open {
 }
 
 .bg-card__actions--single {
-  grid-template-columns: 1fr;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+}
+
+.bg-card__actions--single .bg-card__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .bg-card__btn {

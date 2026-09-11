@@ -20,6 +20,27 @@ export const fetchQrContext = createAsyncThunk(
     sessionStorage.setItem(QR_CONTEXT_STORAGE_KEY, JSON.stringify(context));
     window.qrContext = context;
 
+    const directContextKeys = ["companyId", "branchId", "tableId", "sessionId"];
+    if (directContextKeys.every((key) => params[key])) {
+      const data = Object.fromEntries(
+        [
+          ...directContextKeys,
+          "companyName",
+          "branchName",
+          "tableName",
+          "tableNumber",
+          "tableNo",
+        ]
+          .filter((key) => params[key])
+          .map((key) => [key, params[key]]),
+      );
+      const resolvedContext = { params, data, fetchedAt: new Date().toISOString() };
+      sessionStorage.setItem(QR_CONTEXT_STORAGE_KEY, JSON.stringify(resolvedContext));
+      window.qrContext = resolvedContext;
+      window.dispatchEvent(new CustomEvent("qr-context-ready", { detail: resolvedContext }));
+      return resolvedContext;
+    }
+
     try {
       const response = await fetch(`${URLS.api.qrContext}?${searchParams.toString()}`, { signal });
       if (!response.ok) throw new Error(`QR context request failed: ${response.status}`);

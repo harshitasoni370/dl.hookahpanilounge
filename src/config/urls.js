@@ -4,10 +4,17 @@ const apiDefaults = {
   uat: "https://fumesandflavoursapi.cylsysuat.com/api/QR/qrcontext",
   production: "https://api.thedesirelounge.com/api/QR/qrcontext",
 };
+const gamesApiDefaults = {
+  uat: "https://fumesandflavoursapi.cylsysuat.com/api",
+  production: "https://api.thedesirelounge.com/api",
+};
 
 export const URLS = {
   api: {
     qrContext: import.meta.env.VITE_QR_CONTEXT_API_URL || apiDefaults[environment],
+    gamesBase: import.meta.env.VITE_GAMES_API_URL || gamesApiDefaults[environment],
+    reservationCategories: import.meta.env.VITE_RESERVATION_CATEGORIES_API_URL || `${gamesApiDefaults[environment]}/Reservation/getReservationCategories`,
+    createReservation: import.meta.env.VITE_CREATE_RESERVATION_API_URL || `${gamesApiDefaults[environment]}/Reservation/CraeteReservation`,
   },
   app: {
     menu: import.meta.env.VITE_MENU_URL || "/menu",
@@ -17,8 +24,8 @@ export const URLS = {
   website: {
     home: externalBaseUrl,
     reserve: `${externalBaseUrl}/#reserve`,
-    liveSports: `${externalBaseUrl}/live-sports.html`,
-    events: `${externalBaseUrl}/events.html`,
+    liveSports: `${externalBaseUrl}/`,
+    events: `${externalBaseUrl}/sunday-brunch`,
   },
   contact: {
     phone: "+971509002202",
@@ -43,9 +50,20 @@ export const URLS = {
   assets: {
     menu: "/assets/data/menu.json",
     boardGames: "/assets/data/board-games.json",
+    imageBase: import.meta.env.VITE_IMAGE_BASE_URL || "https://fumesandflavoursapi.cylsysuat.com",
   },
   environment,
 };
 
-export const QR_CONTEXT_PARAMS = ["type", "location", "name", "resturant"];
+export const QR_CONTEXT_PARAMS = [
+  "type",
+  "location",
+  "name",
+  "resturant",
+  "restaurant",
+  "companyId",
+  "branchId",
+  "tableId",
+  "sessionId",
+];
 export const QR_CONTEXT_STORAGE_KEY = "desire_qr_context";

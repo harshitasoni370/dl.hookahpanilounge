@@ -57,7 +57,7 @@ export default function Header() {
     <header className="lounge-header">
       <a href="/" className="logo lounge-header__logo" aria-label="DESIRE SHEESHA LOUNGE home">
         <img
-          src="assets/images/logo.webp?v=20260821"
+          src="https://restaurents-api.cylsys.com/Assets/theDesireLounge/Image/Logo/logo.webp"
           alt=""
           className="logo__mark"
           width="48"
