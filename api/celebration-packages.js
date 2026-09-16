@@ -1,34 +1,25 @@
 import https from "node:https";
 
 const upstreamBase = process.env.API_BASE_URL || process.env.VITE_API_BASE_URL || "https://restaurents-api.cylsys.com/api";
+const moduleIds = {
+  birthday: "02861404-4450-4d04-8461-679f3e8e09e3",
+  corporate: "02ea8929-ad23-47a0-b416-db1d0f33ec46",
+};
 
-function forwardGetWithBody(url, body) {
+function forwardGet(url) {
   return new Promise((resolve, reject) => {
-    const request = https.request(url, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Content-Length": Buffer.byteLength(body),
-      },
-    }, (response) => {
+    https.get(url, (response) => {
       let text = "";
       response.setEncoding("utf8");
       response.on("data", (chunk) => { text += chunk; });
       response.on("end", () => resolve({ status: response.statusCode || 502, text }));
-    });
-    request.on("error", reject);
-    request.write(body);
-    request.end();
+    }).on("error", reject);
   });
 }
 
 export default async function handler(req, res) {
   const type = req.query?.type;
-  const endpoint = type === "playstation"
-    ? "Playstation/Playstationgamelist"
-    : type === "board-games"
-      ? "BoardGame/Boardgamelist"
-      : null;
+  const endpoint = type === "birthday" ? "Birthday/GetBirthdayPageData" : type === "corporate" ? "Corporate/GetCorporatePageData" : null;
   const { companyId, branchId } = req.query || {};
 
   if (!endpoint || !companyId || !branchId) {
@@ -36,13 +27,12 @@ export default async function handler(req, res) {
     return;
   }
 
+  const moduleId = req.query.moduleId || moduleIds[type];
+  const params = new URLSearchParams({ companyId, branchId, moduleId });
   try {
-    const result = await forwardGetWithBody(
-      `${upstreamBase}/${endpoint}`,
-      JSON.stringify({ companyId, branchId }),
-    );
+    const result = await forwardGet(`${upstreamBase}/${endpoint}?${params}`);
     res.status(result.status).setHeader("Content-Type", "application/json").send(result.text);
   } catch (error) {
-    res.status(502).json({ error: "Unable to reach games API", detail: error.message });
+    res.status(502).json({ error: "Unable to reach celebration packages API", detail: error.message });
   }
 }

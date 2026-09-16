@@ -1,6 +1,6 @@
 import https from "node:https";
 
-const upstreamUrl = "https://fumesandflavoursapi.cylsysuat.com/api/CustomMoment/GetCustomMoments";
+const upstreamUrl = `${process.env.API_BASE_URL || process.env.VITE_API_BASE_URL || "https://restaurents-api.cylsys.com/api"}/CustomMoment/GetCustomMoments`;
 
 function forwardGetWithBody(body, tableSessionId) {
   return new Promise((resolve, reject) => {

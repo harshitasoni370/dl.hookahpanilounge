@@ -6,11 +6,22 @@ import { fetchQrContext, selectQrContext, selectQrContextStatus } from "./store/
 import { DEFAULT_CONTEXT, fetchGames } from "./utils/gamesApi";
 import { createReservation, fetchReservationCategories } from "./utils/reservationApi";
 import { DEFAULT_CUSTOM_MOMENT_CONTEXT, fetchCustomMoments } from "./utils/customMomentsApi";
+import { fetchCelebrationPackages } from "./utils/celebrationPackagesApi";
+import { fetchMembership } from "./utils/membershipApi";
+import ExclusiveOffersPage from "./pages/ExclusiveOffersPage";
 import { URLS } from "./config/urls";
 
 const MENU_APP_URL = import.meta.env.VITE_MENU_APP_URL || "https://app.thedesirelounge.com";
 const RESERVATION_URL = import.meta.env.VITE_RESERVATION_URL || "https://thedesirelounge.com/";
+const LIVE_SPORTS_URL = import.meta.env.VITE_LIVE_SPORTS_URL || "https://thedesirelounge.com/live-sports";
+const EVENTS_URL = import.meta.env.VITE_EVENTS_URL || "https://thedesirelounge.com/events";
 const LOGO_URL = "https://restaurents-api.cylsys.com/Assets/theDesireLounge/Image/Logo/logo.webp";
+const DEFAULT_RESERVATION_MODULE_ID = "3e340f23-d842-47f0-98e8-b0d458dc22dd";
+const DEFAULT_CELEBRATION_MODULE_IDS = {
+  birthday: "02861404-4450-4d04-8461-679f3e8e09e3",
+  corporate: "02ea8929-ad23-47a0-b416-db1d0f33ec46",
+};
+const DEFAULT_MEMBERSHIP_MODULE_ID = "b38fa611-ea6c-4414-9398-fbe6ca1d314c";
 
 function normalizePath(path) {
   if (!path || path === "/index.html" || path === "/index") return "/";
@@ -22,17 +33,69 @@ function normalizePath(path) {
 
 function buildMenuUrl(search, qrContext, pathname = "/") {
   const params = new URLSearchParams(search);
-  Object.entries(qrContext?.data || {}).forEach(([key, value]) => {
+  const data = qrContext?.data || {};
+  Object.entries(data).forEach(([key, value]) => {
+    if (value !== null && value !== undefined && value !== "") params.set(key, String(value));
+  });
+  const aliases = {
+    tableNumber: data.tableNumber || data.tableNo || data.tableName || params.get("tableNumber") || params.get("tableNo") || params.get("tableName"),
+    tableNo: data.tableNo || data.tableNumber || params.get("tableNo") || params.get("tableNumber"),
+    tableSessionId: data.tableSessionId || data.sessionId || params.get("tableSessionId") || params.get("sessionId"),
+    guestName: data.guestName || data.name || params.get("guestName"),
+    mobile: data.mobile || data.phone || params.get("mobile") || params.get("phone"),
+    email: data.email || params.get("email"),
+    dateOfBirth: data.dateOfBirth || data.dob || params.get("dateOfBirth") || params.get("dob"),
+    guestCount: data.guestCount || data.guests || params.get("guestCount") || params.get("guests"),
+  };
+  Object.entries(aliases).forEach(([key, value]) => {
     if (value !== null && value !== undefined && value !== "") params.set(key, String(value));
   });
   const query = params.toString();
   return `${MENU_APP_URL}${pathname}${query ? `?${query}` : ""}`;
 }
 
+function getQueryValue(search, qrContext, key, fallback = "") {
+  return qrContext?.data?.[key] || new URLSearchParams(search).get(key) || fallback;
+}
+
+function getExtraDetails(search) {
+  const value = new URLSearchParams(search).get("extraDetails");
+  if (!value) return null;
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function buildReservationPayload(search, qrContext, overrides = {}) {
+  const context = getRequestContext(search, qrContext);
+  return {
+    companyId: context.companyId,
+    branchId: context.branchId,
+    moduleId: getQueryValue(search, qrContext, "moduleId", context.moduleId),
+    guestName: getQueryValue(search, qrContext, "guestName", overrides.guestName),
+    mobile: getQueryValue(search, qrContext, "mobile", overrides.mobile),
+    email: getQueryValue(search, qrContext, "email", overrides.email),
+    dateOfBirth: getQueryValue(search, qrContext, "dateOfBirth", overrides.dateOfBirth || null),
+    guestCount: Number(getQueryValue(search, qrContext, "guestCount", overrides.guestCount || 1)),
+    reservationDateTime: getQueryValue(search, qrContext, "reservationDateTime", overrides.reservationDateTime),
+    reservationTitle: getQueryValue(search, qrContext, "reservationTitle", overrides.reservationTitle || null),
+    tableId: getQueryValue(search, qrContext, "tableId", context.tableId),
+    specialRequest: getQueryValue(search, qrContext, "specialRequest", overrides.specialRequest),
+    extraDetails: overrides.extraDetails ?? getExtraDetails(search),
+  };
+}
+
 function buildGameMenuUrl(search, qrContext, type, game) {
   const pathname = "/checkout";
   const url = new URL(buildMenuUrl(search, qrContext, pathname));
   const categoryName = type === "playstation" ? "PlayStation" : "Board Games";
+  const reservation = buildReservationPayload(search, qrContext, {
+    reservationTitle: "Gaming",
+    extraDetails: { id: game.id, name: game.name },
+  });
   url.searchParams.set("categoryName", categoryName);
   url.searchParams.set("category", categoryName);
   url.searchParams.set("gameName", game.name);
@@ -41,6 +104,10 @@ function buildGameMenuUrl(search, qrContext, type, game) {
   url.searchParams.set("players", game.players);
   url.searchParams.set("duration", game.duration);
   url.searchParams.set("difficulty", game.difficulty);
+  url.searchParams.set("moduleId", reservation.moduleId);
+  url.searchParams.set("tableId", reservation.tableId);
+  url.searchParams.set("reservationTitle", reservation.reservationTitle);
+  url.searchParams.set("extraDetails", JSON.stringify(reservation.extraDetails));
   url.searchParams.set("step", "about-you");
   url.searchParams.set("hideSteps", "true");
   url.searchParams.set("hideCardIcon", "true");
@@ -69,10 +136,86 @@ function buildMomentMenuUrl(search, qrContext, moment, context) {
     name: moment.name,
     price: moment.price || null,
   }));
+  url.searchParams.set("moduleId", context.moduleId || "");
+  url.searchParams.set("reservationTitle", "Custom Moment");
   url.searchParams.set("step", "about-you");
   url.searchParams.set("hideSteps", "true");
   url.searchParams.set("hideCardIcon", "true");
   return url.toString();
+}
+
+function buildPackageMenuUrl(search, qrContext, packageDetails) {
+  const url = new URL(buildMenuUrl(search, qrContext, "/checkout"));
+  const context = getRequestContext(search, qrContext);
+  const price = String(packageDetails.price || "").match(/[\d.]+/)?.[0] || "";
+  const extraDetails = {
+    id: packageDetails.id || null,
+    name: packageDetails.name,
+    type: packageDetails.type,
+    price: price || packageDetails.price || null,
+  };
+
+  url.searchParams.set("categoryName", packageDetails.categoryName);
+  url.searchParams.set("category", packageDetails.category);
+  url.searchParams.set("reservationCategory", packageDetails.category);
+  url.searchParams.set("eventName", packageDetails.name);
+  url.searchParams.set("bookingType", packageDetails.bookingType);
+  url.searchParams.set("reservationTitle", packageDetails.name);
+  url.searchParams.set("moduleId", packageDetails.moduleId || context.moduleId);
+  if (context.tableId) url.searchParams.set("tableId", context.tableId);
+  url.searchParams.set("price", price);
+  url.searchParams.set("extraDetails", JSON.stringify(extraDetails));
+  url.searchParams.set("step", "about-you");
+  url.searchParams.set("hideSteps", "true");
+  url.searchParams.set("hideCardIcon", "true");
+  return url.toString();
+}
+
+function getPackageCheckoutDetails(href) {
+  if (href.includes("book%20a%20Birthday%20Celebration")) {
+    return {
+      name: "Birthday Celebration Package",
+      type: "birthday-package",
+      categoryName: "Birthday Celebrations",
+      category: "BIRTHDAY",
+      bookingType: "Birthday Celebration",
+    };
+  }
+  if (href.includes("enquire%20about%20Corporate%20Bookings")) {
+    return {
+      name: "Corporate Celebration Package",
+      type: "corporate-package",
+      categoryName: "Corporate Bookings",
+      category: "CORPORATE",
+      bookingType: "Corporate Booking",
+    };
+  }
+  return null;
+}
+
+function getMembershipContext(search, qrContext) {
+  const context = getRequestContext(search, qrContext);
+  const data = qrContext?.data || {};
+  const params = new URLSearchParams(search);
+  return {
+    companyId: data.companyId || params.get("companyId") || context.companyId,
+    branchId: data.branchId || params.get("branchId") || context.branchId,
+    moduleId: data.membershipModuleId || params.get("membershipModuleId") || DEFAULT_MEMBERSHIP_MODULE_ID,
+  };
+}
+
+function getCelebrationContext(search, qrContext, type) {
+  const context = getRequestContext(search, qrContext);
+  const params = new URLSearchParams(search);
+  const data = qrContext?.data || {};
+  return {
+    companyId: data.companyId || params.get("companyId") || context.companyId,
+    branchId: data.branchId || params.get("branchId") || context.branchId,
+    moduleId:
+      data[`${type}ModuleId`] ||
+      params.get(`${type}ModuleId`) ||
+      DEFAULT_CELEBRATION_MODULE_IDS[type],
+  };
 }
 
 function hasMatchingParams(search, contextParams) {
@@ -89,7 +232,16 @@ function getGameContext(search, qrContext) {
 }
 
 function getRequestContext(search, qrContext) {
-  return getGameContext(search, qrContext) || DEFAULT_CONTEXT;
+  const context = getGameContext(search, qrContext) || DEFAULT_CONTEXT;
+  const params = new URLSearchParams(search);
+  const data = qrContext?.data || {};
+  return {
+    ...context,
+    tableId: data.tableId || params.get("tableId") || "",
+    moduleId: data.moduleId || params.get("moduleId") || DEFAULT_RESERVATION_MODULE_ID,
+    tableSessionId:
+      data.tableSessionId || data.sessionId || params.get("tableSessionId") || params.get("sessionId") || "",
+  };
 }
 
 function getCustomMomentContext(search, qrContext) {
@@ -114,7 +266,7 @@ function getCustomMomentContext(search, qrContext) {
       params.get("tableNumber") ||
       params.get("tableNo") ||
       "",
-    moduleId: data.moduleId || params.get("moduleId") || "",
+    moduleId: data.moduleId || params.get("moduleId") || DEFAULT_CUSTOM_MOMENT_CONTEXT.moduleId,
   };
 }
 
@@ -200,24 +352,27 @@ function initReservation(root, context) {
     event.preventDefault();
     const data = new FormData(form);
     const reservationDateTime = `${data.get("date")}T${data.get("time")}:00`;
+    const searchParams = new URLSearchParams(window.location.search);
+    const queryExtraDetails = getExtraDetails(window.location.search);
+    const gameId = searchParams.get("gameId");
+    const gameName = searchParams.get("gameName");
+    const extraDetails = queryExtraDetails || (gameId || gameName ? { id: gameId, name: gameName } : null);
     try {
       await createReservation({
         companyId: context.companyId,
         branchId: context.branchId,
         guestName: data.get("name"),
         mobile: data.get("phone"),
-        dateOfBirth: null,
-        guestCount: Number(data.get("guests")),
+        dateOfBirth: data.get("dateOfBirth") || null,
+        guestCount: Number(data.get("guests") || 1),
         reservationDateTime,
         email: data.get("email") || "",
-        reservationTitle: null,
-        ...(isGuid(context.tableId) ? { tableId: context.tableId } : {}),
-        moduleId: context.moduleId || "",
+        reservationTitle: data.get("reservationCategory") || "TABLE_RESERVATION",
+        tableId: searchParams.get("tableId") || context.tableId || "",
+        moduleId: searchParams.get("moduleId") || context.moduleId || "",
         specialRequest: data.get("notes") || "",
         reservationCategory: data.get("reservationCategory"),
-        extraDetails: context.momentId
-          ? { id: context.momentId, name: context.momentName }
-          : null,
+        extraDetails,
       }, context.tableSessionId);
       if (note) note.textContent = "Reservation request received. We’ll confirm shortly.";
       form.reset();
@@ -357,8 +512,8 @@ export default function App() {
     'src="assets/images/careem.avif"',
     'src="/assets/images/careem.avif"',
   ).replaceAll("assets/images/logo.webp?v=20260821", LOGO_URL)
-    .replaceAll('href="https://thedesirelounge.com/events.html"', 'href="/sunday-brunch"')
-    .replaceAll('href="https://thedesirelounge.com/live-sports.html"', 'href="/"');
+    .replaceAll('href="https://thedesirelounge.com/events.html"', `href="${EVENTS_URL}"`)
+    .replaceAll('href="https://thedesirelounge.com/live-sports.html"', `href="${LIVE_SPORTS_URL}"`);
   useEffect(() => {
     dispatch(fetchQrContext(location.search));
   }, [location.search]);
@@ -409,9 +564,31 @@ export default function App() {
     const onLink = (e) => {
       const link = e.currentTarget;
       let href = link.getAttribute("href");
+      if (link.matches("[data-package-book]") && link.dataset.packageDetails) {
+        e.preventDefault();
+        const packageDetails = JSON.parse(link.dataset.packageDetails);
+        window.location.assign(buildPackageMenuUrl(location.search, qrContext, packageDetails));
+        return;
+      }
+      const packageDetails = getPackageCheckoutDetails(href || "");
+      if (packageDetails) {
+        e.preventDefault();
+        window.location.assign(buildPackageMenuUrl(location.search, qrContext, packageDetails));
+        return;
+      }
       if (isReservationTrigger(link)) {
         e.preventDefault();
         openReservation(location.search, path, setOpen);
+        return;
+      }
+      if ((href === LIVE_SPORTS_URL || href === EVENTS_URL) && location.search) {
+        e.preventDefault();
+        const targetUrl = new URL(href, window.location.origin);
+        const currentParams = new URLSearchParams(location.search);
+        currentParams.forEach((value, key) => {
+          if (!targetUrl.searchParams.has(key)) targetUrl.searchParams.set(key, value);
+        });
+        window.location.assign(targetUrl.toString());
         return;
       }
       if (href?.startsWith(MENU_APP_URL) && location.search) {
@@ -530,11 +707,23 @@ export default function App() {
     if (!grid) return undefined;
 
     const controller = new AbortController();
+    const cards = [...grid.querySelectorAll(".bg-card")];
+    const loading = document.createElement("p");
+    loading.className = "bg-loading";
+    loading.textContent = "Loading moments...";
+    loading.setAttribute("role", "status");
+    cards.forEach((card) => {
+      card.hidden = true;
+    });
+    grid.prepend(loading);
+    grid.setAttribute("aria-busy", "true");
+
     fetchCustomMoments(getCustomMomentContext(location.search, qrContext), {
       signal: controller.signal,
     })
       .then((moments) => {
-        const cards = [...grid.querySelectorAll(".bg-card")];
+        loading.remove();
+        grid.setAttribute("aria-busy", "false");
         cards.forEach((card) => {
           card.hidden = true;
         });
@@ -565,13 +754,250 @@ export default function App() {
         const count = grid.parentElement?.querySelector("#moment-count");
         const availableCount = moments.filter((moment) => moment.available).length;
         if (count) count.textContent = `${availableCount} moment${availableCount === 1 ? "" : "s"}`;
+        if (!availableCount) {
+          loading.textContent = "No moments are available right now.";
+          loading.hidden = false;
+          grid.append(loading);
+        }
       })
       .catch((error) => {
-        if (error.name !== "AbortError") console.error("Unable to load custom moments", error);
+        if (error.name === "AbortError") return;
+        console.error("Unable to load custom moments", error);
+        loading.textContent = "Unable to load moments right now.";
+        grid.setAttribute("aria-busy", "false");
       });
 
-    return () => controller.abort();
+    return () => {
+      controller.abort();
+      loading.remove();
+      grid.setAttribute("aria-busy", "false");
+    };
   }, [path, location.search, qrContext]);
+
+  useEffect(() => {
+    const type = path === "/birthday-celebrations" ? "birthday" : path === "/corporate-bookings" ? "corporate" : null;
+    if (!type) return undefined;
+
+    const packageGrid = rootRef.current?.querySelector(".offer-packages");
+    const bookingLink = rootRef.current?.querySelector(".offer-sheet__cta");
+    if (!packageGrid || !bookingLink) return undefined;
+
+    const cards = [...packageGrid.querySelectorAll(".offer-package")];
+    const loading = document.createElement("p");
+    loading.className = "bg-loading";
+    loading.textContent = "Loading packages...";
+    loading.setAttribute("role", "status");
+    cards.forEach((card) => { card.hidden = true; });
+    packageGrid.prepend(loading);
+    bookingLink.dataset.packageBook = "true";
+    bookingLink.href = "#book-package";
+    bookingLink.textContent = "Select a package first";
+    bookingLink.setAttribute("aria-disabled", "true");
+
+    const controller = new AbortController();
+    const context = getCelebrationContext(location.search, qrContext, type);
+    const onSelect = (event) => {
+      const selectedCard = event.target.closest(".offer-package[data-package-details]");
+      if (!selectedCard || !packageGrid.contains(selectedCard)) return;
+      const packageDetails = selectedCard.dataset.packageDetails;
+      cards.forEach((card) => card.classList.toggle("is-selected", card === selectedCard));
+      bookingLink.dataset.packageDetails = packageDetails;
+      bookingLink.textContent = `Book ${JSON.parse(packageDetails).name}`;
+      bookingLink.removeAttribute("aria-disabled");
+    };
+    const onKeyDown = (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      onSelect(event);
+    };
+    packageGrid.addEventListener("click", onSelect);
+    packageGrid.addEventListener("keydown", onKeyDown);
+
+    fetchCelebrationPackages(type, { ...context, signal: controller.signal })
+      .then((packages) => {
+        loading.remove();
+        cards.forEach((card) => { card.hidden = true; });
+        packages.forEach((item, index) => {
+          const card = cards[index];
+          if (!card) return;
+          card.hidden = false;
+          const title = card.querySelector("h2");
+          const description = card.querySelector("p");
+          if (title) title.textContent = `${item.name}${item.price ? ` — ${item.price}` : ""}`;
+          if (description) description.textContent = item.description;
+          const details = JSON.stringify({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            description: item.description,
+            type: `${type}-package`,
+            categoryName: type === "birthday" ? "Birthday Celebrations" : "Corporate Bookings",
+            category: type === "birthday" ? "BIRTHDAY" : "CORPORATE",
+            bookingType: type === "birthday" ? "Birthday Celebration" : "Corporate Booking",
+          });
+          card.dataset.packageDetails = details;
+          card.setAttribute("role", "button");
+          card.setAttribute("tabindex", "0");
+          card.setAttribute("aria-label", `Select ${item.name}`);
+        });
+        if (!packages.length) {
+          loading.textContent = "No packages are available right now.";
+          packageGrid.append(loading);
+        }
+      })
+      .catch((error) => {
+        if (error.name === "AbortError") return;
+        console.error(`Unable to load ${type} packages`, error);
+        loading.textContent = "Unable to load packages right now.";
+        cards.forEach((card) => { card.hidden = true; });
+      });
+
+    return () => {
+      controller.abort();
+      packageGrid.removeEventListener("click", onSelect);
+      packageGrid.removeEventListener("keydown", onKeyDown);
+      loading.remove();
+    };
+  }, [path, location.search, qrContext]);
+
+  useEffect(() => {
+    if (path !== "/privilege-membership") return undefined;
+
+    const panel = rootRef.current?.querySelector(".offer-sheet__panel");
+    const bookingLink = panel?.querySelector(".offer-sheet__cta");
+    if (!panel || !bookingLink) return undefined;
+
+    const context = getMembershipContext(location.search, qrContext);
+    const loading = document.createElement("p");
+    loading.className = "bg-loading";
+    loading.textContent = "Loading membership...";
+    loading.setAttribute("role", "status");
+    panel.append(loading);
+    bookingLink.dataset.packageBook = "true";
+    bookingLink.href = "#join-membership";
+    bookingLink.textContent = "Loading membership...";
+    bookingLink.setAttribute("aria-disabled", "true");
+
+    const controller = new AbortController();
+    fetchMembership({ ...context, signal: controller.signal })
+      .then((membership) => {
+        loading.remove();
+        const name = membership.name || membership.membershipName || "Desire Privilege Membership";
+        const price = membership.priceLabel || membership.price || "";
+        const description = membership.subtitle || "";
+        const details = JSON.stringify({
+          id: membership.id || membership.membershipId || context.moduleId,
+          name,
+          price,
+          description,
+          terms: membership.terms || "",
+          features: membership.features || [],
+          type: "membership",
+          categoryName: "Desire Privilege Membership",
+          category: "MEMBERSHIP",
+          bookingType: "Membership",
+          moduleId: context.moduleId,
+        });
+        const summary = document.createElement("p");
+        summary.className = "offer-sheet__membership-summary";
+        summary.textContent = `${name}${price ? ` — ${price}` : ""}${description ? ` · ${description}` : ""}`;
+        panel.append(summary);
+        bookingLink.dataset.packageDetails = details;
+        bookingLink.textContent = `Join ${name}`;
+        bookingLink.removeAttribute("aria-disabled");
+        const terms = panel.querySelector(".offer-sheet__terms");
+        if (terms && membership.terms) terms.textContent = membership.terms;
+      })
+      .catch((error) => {
+        if (error.name === "AbortError") return;
+        console.error("Unable to load membership", error);
+        loading.textContent = "Unable to load membership right now.";
+        bookingLink.textContent = "Membership unavailable";
+      });
+
+    return () => {
+      controller.abort();
+      loading.remove();
+      panel.querySelector(".offer-sheet__membership-summary")?.remove();
+    };
+  }, [path, location.search, qrContext]);
+
+  useEffect(() => {
+    if (path !== "/exclusive-offers") return undefined;
+
+    const panel = rootRef.current?.querySelector(".offer-sheet__panel");
+    const offerGrid = panel?.querySelector(".offer-packages");
+    const bookingLink = panel?.querySelector(":scope > .offer-sheet__cta");
+    if (!offerGrid || !bookingLink) return undefined;
+
+    const cards = [...offerGrid.querySelectorAll(".offer-package")];
+    const originalHref = bookingLink.href;
+    bookingLink.dataset.packageBook = "true";
+    bookingLink.href = "#book-offer";
+    bookingLink.textContent = "Select an offer first";
+    bookingLink.setAttribute("aria-disabled", "true");
+
+    const selectCard = (card) => {
+      const title = card.querySelector("h2")?.textContent?.trim() || "Exclusive Offer";
+      const description = [...card.querySelectorAll("p, li")]
+        .map((element) => element.textContent.trim())
+        .filter(Boolean)
+        .join(" ");
+      const price = title.match(/AED\s*[\d.]+|\d+%|Complimentary/i)?.[0] || "";
+      const details = {
+        id: card.dataset.offerId || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
+        name: title,
+        price,
+        description,
+        type: "exclusive-offer",
+        categoryName: "Exclusive Offers",
+        category: "EXCLUSIVE_OFFER",
+        bookingType: "Exclusive Offer",
+        moduleId: getRequestContext(location.search, qrContext).moduleId,
+      };
+      cards.forEach((item) => item.classList.toggle("is-selected", item === card));
+      bookingLink.dataset.packageDetails = JSON.stringify(details);
+      bookingLink.textContent = `Book ${title}`;
+      bookingLink.removeAttribute("aria-disabled");
+    };
+    const onClick = (event) => {
+      const card = event.target.closest(".offer-package");
+      if (!card || !offerGrid.contains(card) || event.target.closest("a")) return;
+      selectCard(card);
+    };
+    const onKeyDown = (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      const card = event.target.closest(".offer-package");
+      if (!card) return;
+      event.preventDefault();
+      selectCard(card);
+    };
+    cards.forEach((card) => {
+      card.setAttribute("role", "button");
+      card.setAttribute("tabindex", "0");
+      card.setAttribute("aria-label", `Select ${card.querySelector("h2")?.textContent?.trim() || "exclusive offer"}`);
+    });
+    offerGrid.addEventListener("click", onClick);
+    offerGrid.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      offerGrid.removeEventListener("click", onClick);
+      offerGrid.removeEventListener("keydown", onKeyDown);
+      bookingLink.href = originalHref;
+      delete bookingLink.dataset.packageBook;
+      delete bookingLink.dataset.packageDetails;
+      bookingLink.textContent = "Ask About Offers";
+      bookingLink.removeAttribute("aria-disabled");
+      cards.forEach((card) => {
+        card.removeAttribute("role");
+        card.removeAttribute("tabindex");
+        card.removeAttribute("aria-label");
+        card.classList.remove("is-selected");
+      });
+    };
+  }, [path, location.search, qrContext]);
+
+  if (path === "/exclusive-offers") return <ExclusiveOffersPage />;
 
   if (path === "/menu") {
     const hasFreshContext = qrContext?.data && hasMatchingParams(location.search, qrContext.params);

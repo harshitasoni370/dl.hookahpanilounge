@@ -90,7 +90,7 @@ export default function Home() {
                 <p>High-speed internet for our guests</p>
               </a>
 
-              <a className="lounge-card" href="/">
+              <a className="lounge-card" href="https://thedesirelounge.com/live-sports">
                 <span className="lounge-card__icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
                     <circle cx="12" cy="12" r="9" />
@@ -103,7 +103,7 @@ export default function Home() {
                 <p>Today's matches &amp; schedules</p>
               </a>
 
-              <a className="lounge-card" href="/sunday-brunch">
+              <a className="lounge-card" href="https://thedesirelounge.com/events">
                 <span className="lounge-card__icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z" />
@@ -553,7 +553,7 @@ export default function Home() {
           </div>
 
           <div className="lounge-highlights">
-            <a className="lounge-highlight" href="/sunday-brunch">
+            <a className="lounge-highlight" href="https://thedesirelounge.com/events">
               <span className="lounge-highlight__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <path d="M4 11h16l-1.2 9.5a1.5 1.5 0 0 1-1.5 1.3H6.7a1.5 1.5 0 0 1-1.5-1.3L4 11z" />

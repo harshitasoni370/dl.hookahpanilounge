@@ -1,25 +1,14 @@
 const externalBaseUrl = import.meta.env.VITE_WEBSITE_URL || "https://thedesirelounge.com";
 const environment = import.meta.env.VITE_APP_ENV || (import.meta.env.MODE === "production" ? "production" : "uat");
-const apiDefaults = {
-  uat: "https://fumesandflavoursapi.cylsysuat.com/api/QR/qrcontext",
-  production: "https://api.thedesirelounge.com/api/QR/qrcontext",
-};
-const gamesApiDefaults = {
-  uat: "https://fumesandflavoursapi.cylsysuat.com/api",
-  production: "https://api.thedesirelounge.com/api",
-};
-const reservationApiDefaults = {
-  uat: "https://restaurents-api.cylsys.com/api",
-  production: "https://restaurents-api.cylsys.com/api",
-};
-
 export const URLS = {
   api: {
-    qrContext: import.meta.env.VITE_QR_CONTEXT_API_URL || apiDefaults[environment],
-    gamesBase: import.meta.env.VITE_GAMES_API_URL || gamesApiDefaults[environment],
-    reservationCategories: import.meta.env.VITE_RESERVATION_CATEGORIES_API_URL || `${reservationApiDefaults[environment]}/Reservation/getReservationCategories`,
-    createReservation: import.meta.env.VITE_CREATE_RESERVATION_API_URL || `${reservationApiDefaults[environment]}/Reservation/CraeteReservation`,
+    qrContext: import.meta.env.VITE_QR_CONTEXT_API_URL || "/api/qr-context",
+    gamesBase: import.meta.env.VITE_GAMES_API_URL || "/api/games",
+    reservationCategories: import.meta.env.VITE_RESERVATION_CATEGORIES_API_URL || "/api/reservation-categories",
+    createReservation: import.meta.env.VITE_CREATE_RESERVATION_API_URL || "/api/create-reservation",
     customMoments: import.meta.env.VITE_CUSTOM_MOMENTS_API_URL || "/api/custom-moments",
+    celebrationPackages: import.meta.env.VITE_CELEBRATION_PACKAGES_API_URL || "/api/celebration-packages",
+    membership: import.meta.env.VITE_MEMBERSHIP_API_URL || "/api/membership",
   },
   app: {
     menu: import.meta.env.VITE_MENU_URL || "/menu",
@@ -29,8 +18,8 @@ export const URLS = {
   website: {
     home: externalBaseUrl,
     reserve: `${externalBaseUrl}/#reserve`,
-    liveSports: `${externalBaseUrl}/`,
-    events: `${externalBaseUrl}/sunday-brunch`,
+    liveSports: import.meta.env.VITE_LIVE_SPORTS_URL || `${externalBaseUrl}/live-sports`,
+    events: import.meta.env.VITE_EVENTS_URL || `${externalBaseUrl}/events`,
   },
   contact: {
     phone: "+971509002202",

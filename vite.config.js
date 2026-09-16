@@ -89,4 +89,76 @@ function customMomentsProxy() {
 	}
 }
 
-export default defineConfig({ plugins: [react(), gamesProxy(), customMomentsProxy()] })
+function celebrationPackagesProxy() {
+	return {
+		name: 'celebration-packages-api-proxy',
+		configureServer(server) {
+			server.middlewares.use('/api/celebration-packages', (req, res) => {
+				const params = new URL(req.url, 'http://localhost').searchParams
+				const type = params.get('type')
+				const endpoint = type === 'birthday'
+					? 'Birthday/GetBirthdayPageData'
+					: type === 'corporate'
+						? 'Corporate/GetCorporatePageData'
+						: null
+				const companyId = params.get('companyId')
+				const branchId = params.get('branchId')
+				const moduleId = params.get('moduleId') || (type === 'birthday'
+					? '02861404-4450-4d04-8461-679f3e8e09e3'
+					: '02ea8929-ad23-47a0-b416-db1d0f33ec46')
+				if (!endpoint || !companyId || !branchId) {
+					res.statusCode = 400
+					res.end(JSON.stringify({ error: 'Invalid celebration packages API request' }))
+					return
+				}
+				const upstreamUrl = `https://fumesandflavoursapi.cylsysuat.com/api/${endpoint}?${new URLSearchParams({ companyId, branchId, moduleId })}`
+				https.get(upstreamUrl, (response) => {
+					let output = ''
+					response.on('data', (chunk) => { output += chunk })
+					response.on('end', () => {
+						res.statusCode = response.statusCode || 502
+						res.setHeader('Content-Type', 'application/json')
+						res.end(output)
+					})
+				}).on('error', (error) => {
+					res.statusCode = 502
+					res.end(JSON.stringify({ error: error.message }))
+				})
+			})
+		},
+	}
+}
+
+function membershipProxy() {
+	return {
+		name: 'membership-api-proxy',
+		configureServer(server) {
+			server.middlewares.use('/api/membership', (req, res) => {
+				const params = new URL(req.url, 'http://localhost').searchParams
+				const companyId = params.get('companyId')
+				const branchId = params.get('branchId')
+				const moduleId = params.get('moduleId') || 'b38fa611-ea6c-4414-9398-fbe6ca1d314c'
+				if (!companyId || !branchId) {
+					res.statusCode = 400
+					res.end(JSON.stringify({ error: 'Invalid membership API request' }))
+					return
+				}
+				const upstreamUrl = `https://fumesandflavoursapi.cylsysuat.com/api/Membership/GetMembershipPageData?${new URLSearchParams({ companyId, branchId, moduleId })}`
+				https.get(upstreamUrl, (response) => {
+					let output = ''
+					response.on('data', (chunk) => { output += chunk })
+					response.on('end', () => {
+						res.statusCode = response.statusCode || 502
+						res.setHeader('Content-Type', 'application/json')
+						res.end(output)
+					})
+				}).on('error', (error) => {
+					res.statusCode = 502
+					res.end(JSON.stringify({ error: error.message }))
+				})
+			})
+		},
+	}
+}
+
+export default defineConfig({ plugins: [react(), gamesProxy(), customMomentsProxy(), celebrationPackagesProxy(), membershipProxy()] })

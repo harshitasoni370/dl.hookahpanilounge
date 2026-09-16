@@ -5,6 +5,7 @@ export const DEFAULT_CUSTOM_MOMENT_CONTEXT = {
   branchId: "f4fb1d76-83a0-4965-86b5-63da28249dae",
   typeId: "0880be65-3086-4edf-ad56-877b5e5c97f7",
   tableSessionId: "ee81986f-feac-483d-bebc-adcf8422ff26",
+  moduleId: "3e340f23-d842-47f0-98e8-b0d458dc22dd",
 };
 
 function unwrapMoments(payload) {

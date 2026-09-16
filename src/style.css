@@ -9763,6 +9763,15 @@ body.bg-modal-open {
   transform: translateY(-2px);
 }
 
+.offer-package[role="button"] {
+  cursor: pointer;
+}
+
+.offer-package.is-selected {
+  border-color: var(--lounge-gold);
+  box-shadow: 0 0 0 2px var(--lounge-gold);
+}
+
 .offer-package--featured {
   border-color: var(--lounge-gold);
   background:
@@ -10085,6 +10094,13 @@ body.bg-modal-open {
 .claim-success[hidden],
 .claim-form[hidden] {
   display: none;
+}
+
+.bg-loading {
+  grid-column: 1 / -1;
+  margin: 2rem 0;
+  color: var(--muted, #b5b1aa);
+  text-align: center;
 }
 
 @media (min-width: 640px) {
