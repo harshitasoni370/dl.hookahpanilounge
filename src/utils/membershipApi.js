@@ -1,10 +1,11 @@
-import { URLS } from "../config/urls";
+import { apiRequest } from "./apiClient";
+import { API, MODULE_IDS } from "../config/urls";
 
 export async function fetchMembership({ companyId, branchId, moduleId, signal } = {}) {
-  const params = new URLSearchParams({ companyId, branchId });
-  if (moduleId) params.set("moduleId", moduleId);
-  const response = await fetch(`${URLS.api.membership}?${params}`, { signal });
-  if (!response.ok) throw new Error(`Failed to load membership (${response.status})`);
-  const payload = await response.json();
+  const params = { companyId, branchId, moduleId: moduleId || MODULE_IDS.membership };
+  const payload = await apiRequest(API.upstream.membership, {
+    params,
+    signal,
+  });
   return payload?.data || payload;
 }

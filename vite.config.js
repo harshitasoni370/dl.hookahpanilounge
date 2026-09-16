@@ -1,164 +1,99 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import https from 'node:https'
-
-function gamesProxy() {
-	return {
-		name: 'games-api-proxy',
-		configureServer(server) {
-			server.middlewares.use('/api/games', (req, res) => {
-				const params = new URL(req.url, 'http://localhost').searchParams
-				const type = params.get('type')
-				const endpoint = type === 'playstation'
-					? 'Playstation/Playstationgamelist'
-					: type === 'board-games'
-						? 'BoardGame/Boardgamelist'
-						: null
-				const companyId = params.get('companyId')
-				const branchId = params.get('branchId')
-				if (!endpoint || !companyId || !branchId) {
-					res.statusCode = 400
-					res.end(JSON.stringify({ error: 'Invalid game API request' }))
-					return
-				}
-				const body = JSON.stringify({ companyId, branchId })
-				const upstream = https.request(`https://fumesandflavoursapi.cylsysuat.com/api/${endpoint}`, {
-					method: 'GET',
-					headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
-				}, (response) => {
-					let output = ''
-					response.on('data', (chunk) => { output += chunk })
-					response.on('end', () => {
-						res.statusCode = response.statusCode || 502
-						res.setHeader('Content-Type', 'application/json')
-						res.end(output)
-					})
-				})
-				upstream.on('error', (error) => {
-					res.statusCode = 502
-					res.end(JSON.stringify({ error: error.message }))
-				})
-				upstream.write(body)
-				upstream.end()
-			})
-		},
-	}
+import { defineConfig, loadEnv } from "vite";
+import react from "@vitejs/plugin-react";
+/** URL dekh kar khud pata kar leta hai ki ye UAT hai ya production. */
+function detectEnv(apiBaseUrl) {
+  return /uat|staging|test/i.test(apiBaseUrl || "") ? "uat" : "production";
 }
 
-function customMomentsProxy() {
-	return {
-		name: 'custom-moments-api-proxy',
-		configureServer(server) {
-			server.middlewares.use('/api/custom-moments', (req, res) => {
-				const params = new URL(req.url, 'http://localhost').searchParams
-				const companyId = params.get('companyId')
-				const branchId = params.get('branchId')
-				const search = params.get('search') || ''
-				const typeId = params.get('typeId')
-				const tableSessionId = req.headers['table-session-id']
-				if (!companyId || !branchId || !typeId || !tableSessionId) {
-					res.statusCode = 400
-					res.end(JSON.stringify({ error: 'Invalid custom moments API request' }))
-					return
-				}
-				const body = JSON.stringify({ companyId, branchId, search, typeId })
-				const upstream = https.request('https://fumesandflavoursapi.cylsysuat.com/api/CustomMoment/GetCustomMoments', {
-					method: 'GET',
-					headers: {
-						'Content-Type': 'application/json',
-						'Content-Length': Buffer.byteLength(body),
-						'Table-Session-Id': tableSessionId,
-					},
-				}, (response) => {
-					let output = ''
-					response.on('data', (chunk) => { output += chunk })
-					response.on('end', () => {
-						res.statusCode = response.statusCode || 502
-						res.setHeader('Content-Type', 'application/json')
-						res.end(output)
-					})
-				})
-				upstream.on('error', (error) => {
-					res.statusCode = 502
-					res.end(JSON.stringify({ error: error.message }))
-				})
-				upstream.write(body)
-				upstream.end()
-			})
-		},
-	}
+function banner(appEnv, apiBaseUrl) {
+  const tag = appEnv === "uat" ? "UAT (testing)" : "PRODUCTION (live)";
+  const line = "─".repeat(58);
+  return [
+    "",
+    line,
+    `  BUILD ENVIRONMENT : ${tag}`,
+    `  API               : ${apiBaseUrl}`,
+    "  API handling      : Redux direct upstream calls",
+    line,
+    "",
+  ].join("\n");
 }
 
-function celebrationPackagesProxy() {
-	return {
-		name: 'celebration-packages-api-proxy',
-		configureServer(server) {
-			server.middlewares.use('/api/celebration-packages', (req, res) => {
-				const params = new URL(req.url, 'http://localhost').searchParams
-				const type = params.get('type')
-				const endpoint = type === 'birthday'
-					? 'Birthday/GetBirthdayPageData'
-					: type === 'corporate'
-						? 'Corporate/GetCorporatePageData'
-						: null
-				const companyId = params.get('companyId')
-				const branchId = params.get('branchId')
-				const moduleId = params.get('moduleId') || (type === 'birthday'
-					? '02861404-4450-4d04-8461-679f3e8e09e3'
-					: '02ea8929-ad23-47a0-b416-db1d0f33ec46')
-				if (!endpoint || !companyId || !branchId) {
-					res.statusCode = 400
-					res.end(JSON.stringify({ error: 'Invalid celebration packages API request' }))
-					return
-				}
-				const upstreamUrl = `https://fumesandflavoursapi.cylsysuat.com/api/${endpoint}?${new URLSearchParams({ companyId, branchId, moduleId })}`
-				https.get(upstreamUrl, (response) => {
-					let output = ''
-					response.on('data', (chunk) => { output += chunk })
-					response.on('end', () => {
-						res.statusCode = response.statusCode || 502
-						res.setHeader('Content-Type', 'application/json')
-						res.end(output)
-					})
-				}).on('error', (error) => {
-					res.statusCode = 502
-					res.end(JSON.stringify({ error: error.message }))
-				})
-			})
-		},
-	}
+/**
+ * Har build ke saath dist/build-info.json likhta hai. server.js
+ * proxy isi se pata karte hain ki ye UAT build hai ya production, isliye proxy
+ * apne aap sahi API par jaata hai.
+ */
+function buildInfoPlugin(env) {
+  const apiBaseUrl = env.VITE_API_BASE_URL;
+  const appEnv = env.VITE_APP_ENV || detectEnv(apiBaseUrl);
+  return {
+    name: "desire-build-info",
+    apply: "build",
+    generateBundle() {
+      this.emitFile({
+        type: "asset",
+        fileName: "build-info.json",
+        source: JSON.stringify(
+          {
+            appEnv,
+            apiBaseUrl,
+            imageBaseUrl: env.VITE_IMAGE_BASE_URL || "",
+            builtAt: new Date().toISOString(),
+          },
+          null,
+          2,
+        ),
+      });
+    },
+    closeBundle() {
+      console.log(banner(appEnv, apiBaseUrl));
+    },
+  };
 }
 
-function membershipProxy() {
-	return {
-		name: 'membership-api-proxy',
-		configureServer(server) {
-			server.middlewares.use('/api/membership', (req, res) => {
-				const params = new URL(req.url, 'http://localhost').searchParams
-				const companyId = params.get('companyId')
-				const branchId = params.get('branchId')
-				const moduleId = params.get('moduleId') || 'b38fa611-ea6c-4414-9398-fbe6ca1d314c'
-				if (!companyId || !branchId) {
-					res.statusCode = 400
-					res.end(JSON.stringify({ error: 'Invalid membership API request' }))
-					return
-				}
-				const upstreamUrl = `https://fumesandflavoursapi.cylsysuat.com/api/Membership/GetMembershipPageData?${new URLSearchParams({ companyId, branchId, moduleId })}`
-				https.get(upstreamUrl, (response) => {
-					let output = ''
-					response.on('data', (chunk) => { output += chunk })
-					response.on('end', () => {
-						res.statusCode = response.statusCode || 502
-						res.setHeader('Content-Type', 'application/json')
-						res.end(output)
-					})
-				}).on('error', (error) => {
-					res.statusCode = 502
-					res.end(JSON.stringify({ error: error.message }))
-				})
-			})
-		},
-	}
+function assertEnv(env) {
+  if (!env.VITE_API_BASE_URL) {
+    throw new Error(
+      "[desire-lounge] .env me VITE_API_BASE_URL nahi mila.\n" +
+        "Fix: cp .env.example .env  — phir usme production ya UAT wali line uncomment karo.",
+    );
+  }
+  if (!/^https?:\/\//i.test(env.VITE_API_BASE_URL)) {
+    throw new Error(`[desire-lounge] VITE_API_BASE_URL valid URL nahi hai: ${env.VITE_API_BASE_URL}`);
+  }
 }
 
-export default defineConfig({ plugins: [react(), gamesProxy(), customMomentsProxy(), celebrationPackagesProxy(), membershipProxy()] })
+export default defineConfig(({ command, mode }) => {
+  // Sirf `.env` load hoti hai — koi .env.production / .env.uat nahi.
+  // Isliye URL comment/uncomment karna hi kaafi hai.
+  const env = loadEnv(mode, process.cwd(), "");
+  assertEnv(env);
+
+  const appEnv = env.VITE_APP_ENV || detectEnv(env.VITE_API_BASE_URL);
+
+  if (command === "serve") {
+    console.log(banner(appEnv, env.VITE_API_BASE_URL));
+  }
+
+  return {
+    plugins: [react(), buildInfoPlugin(env)],
+    define: { "import.meta.env.VITE_APP_ENV": JSON.stringify(appEnv) },
+    build: {
+      target: "es2020",
+      sourcemap: false,
+      cssCodeSplit: true,
+      chunkSizeWarningLimit: 900,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            react: ["react", "react-dom", "react-router-dom"],
+            redux: ["@reduxjs/toolkit", "react-redux"],
+          },
+        },
+      },
+    },
+    server: { port: 5173, strictPort: false },
+    preview: { port: 4173 },
+  };
+});

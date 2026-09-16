@@ -1,36 +1,13 @@
 {
-  "rewrites": [
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "headers": [
     {
-      "source": "/api/games",
-      "destination": "/api/games.js"
-    },
-    {
-      "source": "/api/qr-context",
-      "destination": "/api/qr-context.js"
-    },
-    {
-      "source": "/api/reservation-categories",
-      "destination": "/api/reservation-categories.js"
-    },
-    {
-      "source": "/api/create-reservation",
-      "destination": "/api/create-reservation.js"
-    },
-    {
-      "source": "/api/custom-moments",
-      "destination": "/api/custom-moments.js"
-    },
-    {
-      "source": "/api/celebration-packages",
-      "destination": "/api/celebration-packages.js"
-    },
-    {
-      "source": "/api/membership",
-      "destination": "/api/membership.js"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "source": "/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
     }
   ]
 }

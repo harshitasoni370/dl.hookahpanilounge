@@ -37,7 +37,9 @@ function getContext(search, qrContext) {
     companyId: data.companyId || params.get("companyId") || "",
     branchId: data.branchId || params.get("branchId") || "",
     sessionId: data.tableSessionId || data.sessionId || params.get("sessionId") || "",
+    tableSessionId: data.tableSessionId || data.sessionId || params.get("tableSessionId") || params.get("sessionId") || "",
     tableId: data.tableId || params.get("tableId") || "",
+    tableNumber: data.tableNumber || data.tableNo || params.get("tableNumber") || params.get("tableNo") || params.get("name") || "",
     moduleId: data.moduleId || params.get("moduleId") || "3e340f23-d842-47f0-98e8-b0d458dc22dd",
   };
 }
@@ -52,16 +54,22 @@ export default function ExclusiveOffersPage() {
     if (selected === null) return;
     const offer = offers[selected];
     const price = offer.name.match(/AED\s*[\d.]+|\d+%|Complimentary/i)?.[0] || "";
-    const details = { id: offer.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"), name: offer.name, price, type: "exclusive-offer" };
+    const details = { id: offer.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"), name: offer.name, price, description: offer.description, type: "exclusive-offer" };
     const params = new URLSearchParams({
       companyId: context.companyId,
       branchId: context.branchId,
       sessionId: context.sessionId,
+      tableSessionId: context.tableSessionId,
       ...(context.tableId ? { tableId: context.tableId } : {}),
+      ...(context.tableNumber ? { tableNumber: context.tableNumber } : {}),
       categoryName: "Exclusive Offers",
       category: "EXCLUSIVE_OFFER",
       reservationCategory: "EXCLUSIVE_OFFER",
       eventName: offer.name,
+      offerId: details.id,
+      offerName: offer.name,
+      offerDescription: offer.description,
+      offerPrice: price,
       bookingType: "Exclusive Offer",
       reservationTitle: offer.name,
       price: price.replace(/[^\d.]/g, ""),

@@ -1,4 +1,5 @@
-import { URLS } from "../config/urls";
+import { ApiError, apiRequest } from "./apiClient";
+import { API } from "../config/urls";
 
 export const DEFAULT_CUSTOM_MOMENT_CONTEXT = {
   companyId: "0ffbe39e-abf8-4827-9107-1a04b39f3416",
@@ -11,7 +12,6 @@ export const DEFAULT_CUSTOM_MOMENT_CONTEXT = {
 function unwrapMoments(payload) {
   if (Array.isArray(payload)) return payload;
   if (!payload || typeof payload !== "object") return [];
-
   for (const key of ["data", "items", "moments", "result", "records"]) {
     const value = payload[key];
     if (Array.isArray(value)) return value;
@@ -42,22 +42,35 @@ export function normalizeCustomMoments(payload) {
   }));
 }
 
-export async function fetchCustomMoments(
-  {
+export async function fetchCustomMoments(context = {}, { signal } = {}) {
+  const {
     companyId = DEFAULT_CUSTOM_MOMENT_CONTEXT.companyId,
     branchId = DEFAULT_CUSTOM_MOMENT_CONTEXT.branchId,
-    search = "The",
+    search = "",
     typeId = DEFAULT_CUSTOM_MOMENT_CONTEXT.typeId,
     tableSessionId = DEFAULT_CUSTOM_MOMENT_CONTEXT.tableSessionId,
-  } = {},
-  { signal } = {},
-) {
-  const params = new URLSearchParams({ companyId, branchId, search, typeId });
-  const response = await fetch(`${URLS.api.customMoments}?${params}`, {
-    method: "GET",
-    headers: { "Table-Session-Id": tableSessionId },
-    signal,
-  });
-  if (!response.ok) throw new Error(`Failed to load custom moments (${response.status})`);
-  return normalizeCustomMoments(await response.json());
+  } = context;
+
+  const params = { companyId, branchId, search, typeId };
+  const headers = { "Table-Session-Id": tableSessionId };
+
+  let payload;
+  try {
+    payload = await apiRequest(API.upstream.customMoments, {
+      params,
+      headers,
+      signal,
+    });
+  } catch (error) {
+    const isUnsupportedBrowserRequest = error instanceof ApiError && error.status === 415;
+    const isCorsOrNetworkFailure = error instanceof TypeError;
+    if (!isUnsupportedBrowserRequest && !isCorsOrNetworkFailure) throw error;
+
+    // The live endpoint currently requires a GET body, which browsers cannot send.
+    // Keep the page usable until the backend accepts the same values from query params.
+    const fallbackResponse = await fetch("/assets/data/custom-moments.json", { signal });
+    if (!fallbackResponse.ok) throw error;
+    payload = await fallbackResponse.json();
+  }
+  return normalizeCustomMoments(payload);
 }

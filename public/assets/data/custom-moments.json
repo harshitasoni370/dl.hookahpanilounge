@@ -1,0 +1,60 @@
+{
+  "status": true,
+  "type": "success",
+  "data": [
+    {
+      "momentId": "6ad63db9-aecf-4c08-b1ff-eb0418339192",
+      "momentName": "Shine on Screen",
+      "categoryId": "394e173a-763a-49c5-b9ec-31edfb8b37e6",
+      "categoryName": "Screen",
+      "price": 50,
+      "priceUnitName": "/ Session",
+      "tag": "Name + photo + message",
+      "description": "Your name, photo and personalized message on our big screen - perfect for birthdays, anniversaries and congratulations.",
+      "imageUrl": "/Image/Makemoment/screen.webp",
+      "isBestValue": false,
+      "isAvailable": true,
+      "displayOrder": 1
+    },
+    {
+      "momentId": "c24907f4-673f-4b43-8ec0-9e7bdffb43a7",
+      "momentName": "Pyro Moment",
+      "categoryId": "c4072398-4e55-4565-b570-053690868387",
+      "categoryName": "Effects",
+      "price": 100,
+      "priceUnitName": "/ Shot",
+      "tag": "Cake & special moments",
+      "description": "Add a dramatic pyrotechnic celebration effect to your cake presentation or special moment, subject to venue safety rules.",
+      "imageUrl": "/Image/Makemoment/pyro.webp",
+      "isBestValue": false,
+      "isAvailable": true,
+      "displayOrder": 2
+    },
+    {
+      "momentId": "bff55b8a-bec2-4835-8fd3-40d1651c5507",
+      "momentName": "Party Popper Moment",
+      "categoryId": "c4072398-4e55-4565-b570-053690868387",
+      "categoryName": "Effects",
+      "price": 50,
+      "tag": "Confetti celebration",
+      "description": "A coordinated party popper and confetti moment during your cake cutting or special announcement.",
+      "imageUrl": "/Image/Makemoment/popper.webp",
+      "isBestValue": false,
+      "isAvailable": true,
+      "displayOrder": 3
+    },
+    {
+      "momentId": "98e35ddb-fc44-4830-a53b-74407d72fcbf",
+      "momentName": "The Grand Moment",
+      "categoryId": "a9e38f11-bbc4-45d1-b220-13d0397f9266",
+      "categoryName": "Bundle",
+      "price": 175,
+      "tag": "All three combined",
+      "description": "The full experience: personalized screen, 1 pyro shot and party poppers - save when you book the bundle.",
+      "imageUrl": "/Image/Makemoment/grand.webp",
+      "isBestValue": true,
+      "isAvailable": true,
+      "displayOrder": 4
+    }
+  ]
+}

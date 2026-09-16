@@ -1,8 +1,9 @@
-import { URLS } from "../config/urls";
+import { apiRequest } from "./apiClient";
+import { API, MODULE_IDS } from "../config/urls";
 
 function unwrap(payload) {
   if (Array.isArray(payload)) return payload;
-  return payload?.packages || payload?.data?.packages || [];
+  return payload?.packages || payload?.data?.packages || payload?.data || [];
 }
 
 function text(value, fallback = "") {
@@ -10,7 +11,8 @@ function text(value, fallback = "") {
 }
 
 export function normalizeCelebrationPackages(payload) {
-  return unwrap(payload).map((item, index) => ({
+  const list = unwrap(payload);
+  return (Array.isArray(list) ? list : []).map((item, index) => ({
     ...item,
     id: text(item.packageId || item.id, `package-${index + 1}`),
     name: text(item.packageName || item.name, `Package ${index + 1}`),
@@ -20,9 +22,12 @@ export function normalizeCelebrationPackages(payload) {
 }
 
 export async function fetchCelebrationPackages(type, { companyId, branchId, moduleId, signal } = {}) {
-  const params = new URLSearchParams({ type, companyId, branchId });
-  if (moduleId) params.set("moduleId", moduleId);
-  const response = await fetch(`${URLS.api.celebrationPackages}?${params}`, { signal });
-  if (!response.ok) throw new Error(`Failed to load ${type} packages (${response.status})`);
-  return normalizeCelebrationPackages(await response.json());
+  const params = { companyId, branchId, moduleId: moduleId || MODULE_IDS[type] };
+  const directUrl = type === "birthday" ? API.upstream.birthdayPackages : API.upstream.corporatePackages;
+
+  const payload = await apiRequest(directUrl, {
+    params: { type, ...params },
+    signal,
+  });
+  return normalizeCelebrationPackages(payload);
 }

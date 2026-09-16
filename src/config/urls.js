@@ -1,19 +1,53 @@
 const externalBaseUrl = import.meta.env.VITE_WEBSITE_URL || "https://thedesirelounge.com";
-const environment = import.meta.env.VITE_APP_ENV || (import.meta.env.MODE === "production" ? "production" : "uat");
+const environment =
+  import.meta.env.VITE_APP_ENV || (import.meta.env.MODE === "production" ? "production" : "uat");
+
+/**
+ * UPSTREAM_BASE -> browser se directly call hone wali .NET API.
+ * API calls Redux thunks se isi configured base URL par jaati hain; same-origin
+ * server-side API route ki zaroorat nahi hai.
+ */
+const UPSTREAM_BASE = (
+  import.meta.env.VITE_API_BASE_URL || "https://restaurents-api.cylsys.com/api"
+).replace(/\/+$/, "");
+
+export const API = {
+  upstreamBase: UPSTREAM_BASE,
+  upstream: {
+    qrContext: `${UPSTREAM_BASE}/QR/qrcontext`,
+    playstationGames: `${UPSTREAM_BASE}/Playstation/Playstationgamelist`,
+    boardGames: `${UPSTREAM_BASE}/BoardGame/Boardgamelist`,
+    customMoments: `${UPSTREAM_BASE}/CustomMoment/GetCustomMoments`,
+    birthdayPackages: `${UPSTREAM_BASE}/Birthday/GetBirthdayPageData`,
+    corporatePackages: `${UPSTREAM_BASE}/Corporate/GetCorporatePageData`,
+    membership: `${UPSTREAM_BASE}/Membership/GetMembershipPageData`,
+    reservationCategories: `${UPSTREAM_BASE}/Reservation/getReservationCategories`,
+    createReservation: `${UPSTREAM_BASE}/Reservation/CraeteReservation`,
+  },
+};
+
+export const MODULE_IDS = {
+  birthday: "02861404-4450-4d04-8461-679f3e8e09e3",
+  corporate: "02ea8929-ad23-47a0-b416-db1d0f33ec46",
+  membership: "b38fa611-ea6c-4414-9398-fbe6ca1d314c",
+  reservation: "3e340f23-d842-47f0-98e8-b0d458dc22dd",
+};
+
 export const URLS = {
   api: {
-    qrContext: import.meta.env.VITE_QR_CONTEXT_API_URL || "/api/qr-context",
-    gamesBase: import.meta.env.VITE_GAMES_API_URL || "/api/games",
-    reservationCategories: import.meta.env.VITE_RESERVATION_CATEGORIES_API_URL || "/api/reservation-categories",
-    createReservation: import.meta.env.VITE_CREATE_RESERVATION_API_URL || "/api/create-reservation",
-    customMoments: import.meta.env.VITE_CUSTOM_MOMENTS_API_URL || "/api/custom-moments",
-    celebrationPackages: import.meta.env.VITE_CELEBRATION_PACKAGES_API_URL || "/api/celebration-packages",
-    membership: import.meta.env.VITE_MEMBERSHIP_API_URL || "/api/membership",
+    qrContext: import.meta.env.VITE_QR_CONTEXT_API_URL || API.upstream.qrContext,
+    games: API.upstream.playstationGames,
+    reservationCategories: API.upstream.reservationCategories,
+    createReservation: API.upstream.createReservation,
+    customMoments: API.upstream.customMoments,
+    celebrationPackages: API.upstream.birthdayPackages,
+    membership: API.upstream.membership,
   },
   app: {
     menu: import.meta.env.VITE_MENU_URL || "/menu",
     menuApp: import.meta.env.VITE_MENU_APP_URL || "https://app.thedesirelounge.com",
-    categories: import.meta.env.VITE_CATEGORIES_URL || "https://app.thedesirelounge.com/categories",
+    categories:
+      import.meta.env.VITE_CATEGORIES_URL || "https://app.thedesirelounge.com/categories",
   },
   website: {
     home: externalBaseUrl,
@@ -44,7 +78,9 @@ export const URLS = {
   assets: {
     menu: "/assets/data/menu.json",
     boardGames: "/assets/data/board-games.json",
-    imageBase: import.meta.env.VITE_IMAGE_BASE_URL || "https://restaurents-api.cylsys.com",
+    imageBase: (
+      import.meta.env.VITE_IMAGE_BASE_URL || "https://restaurents-api.cylsys.com"
+    ).replace(/\/+$/, ""),
   },
   environment,
 };

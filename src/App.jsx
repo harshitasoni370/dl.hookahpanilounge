@@ -3,13 +3,16 @@ import { pages } from "./pages";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchQrContext, selectQrContext, selectQrContextStatus } from "./store/slices/qrContextSlice";
-import { DEFAULT_CONTEXT, fetchGames } from "./utils/gamesApi";
-import { createReservation, fetchReservationCategories } from "./utils/reservationApi";
-import { DEFAULT_CUSTOM_MOMENT_CONTEXT, fetchCustomMoments } from "./utils/customMomentsApi";
-import { fetchCelebrationPackages } from "./utils/celebrationPackagesApi";
-import { fetchMembership } from "./utils/membershipApi";
+import { DEFAULT_CONTEXT } from "./utils/gamesApi";
+import { DEFAULT_CUSTOM_MOMENT_CONTEXT } from "./utils/customMomentsApi";
+import { fetchGames, selectGames } from "./store/slices/gamesSlice";
+import { fetchCustomMoments, selectCustomMoments } from "./store/slices/customMomentsSlice";
+import { fetchCelebrationPackages, selectCelebrationPackages } from "./store/slices/celebrationPackagesSlice";
+import { fetchMembership, selectMembership } from "./store/slices/membershipSlice";
+import { fetchReservationCategories, submitReservation } from "./store/slices/reservationSlice";
 import ExclusiveOffersPage from "./pages/ExclusiveOffersPage";
 import { URLS } from "./config/urls";
+import { getImageUrl } from "./utils/imageUrl";
 
 const MENU_APP_URL = import.meta.env.VITE_MENU_APP_URL || "https://app.thedesirelounge.com";
 const RESERVATION_URL = import.meta.env.VITE_RESERVATION_URL || "https://thedesirelounge.com/";
@@ -41,6 +44,7 @@ function buildMenuUrl(search, qrContext, pathname = "/") {
     tableNumber: data.tableNumber || data.tableNo || data.tableName || params.get("tableNumber") || params.get("tableNo") || params.get("tableName"),
     tableNo: data.tableNo || data.tableNumber || params.get("tableNo") || params.get("tableNumber"),
     tableSessionId: data.tableSessionId || data.sessionId || params.get("tableSessionId") || params.get("sessionId"),
+    sessionId: data.sessionId || data.tableSessionId || params.get("sessionId") || params.get("tableSessionId"),
     guestName: data.guestName || data.name || params.get("guestName"),
     mobile: data.mobile || data.phone || params.get("mobile") || params.get("phone"),
     email: data.email || params.get("email"),
@@ -94,7 +98,7 @@ function buildGameMenuUrl(search, qrContext, type, game) {
   const categoryName = type === "playstation" ? "PlayStation" : "Board Games";
   const reservation = buildReservationPayload(search, qrContext, {
     reservationTitle: "Gaming",
-    extraDetails: { id: game.id, name: game.name },
+    extraDetails: { ...game, id: game.id, name: game.name },
   });
   url.searchParams.set("categoryName", categoryName);
   url.searchParams.set("category", categoryName);
@@ -132,6 +136,7 @@ function buildMomentMenuUrl(search, qrContext, moment, context) {
   if (moment.price) url.searchParams.set("price", moment.price);
   url.searchParams.set("sessionType", "Custom Moment");
   url.searchParams.set("extraDetails", JSON.stringify({
+    ...moment,
     id: moment.id,
     name: moment.name,
     price: moment.price || null,
@@ -149,6 +154,7 @@ function buildPackageMenuUrl(search, qrContext, packageDetails) {
   const context = getRequestContext(search, qrContext);
   const price = String(packageDetails.price || "").match(/[\d.]+/)?.[0] || "";
   const extraDetails = {
+    ...packageDetails,
     id: packageDetails.id || null,
     name: packageDetails.name,
     type: packageDetails.type,
@@ -251,7 +257,7 @@ function getCustomMomentContext(search, qrContext) {
     companyId: data.companyId || params.get("companyId") || DEFAULT_CUSTOM_MOMENT_CONTEXT.companyId,
     branchId: data.branchId || params.get("branchId") || DEFAULT_CUSTOM_MOMENT_CONTEXT.branchId,
     typeId: data.typeId || params.get("typeId") || DEFAULT_CUSTOM_MOMENT_CONTEXT.typeId,
-    search: params.get("momentSearch") || "The",
+    search: params.get("momentSearch") || "",
     tableSessionId:
       data.tableSessionId ||
       data.sessionId ||
@@ -312,14 +318,21 @@ function isReservationTrigger(element) {
   return /\b(reserve|reservation|book|booking)\b/i.test(text);
 }
 
-function openReservation(search, path, setOpen) {
+function openReservation(search, path, qrContext, setOpen) {
   const params = new URLSearchParams(search);
   params.set("reservationCategory", getReservationCategory(path));
-  window.location.assign(`${RESERVATION_URL}?${params.toString()}#reserve`);
+  params.set("category", getReservationCategory(path));
+  params.set("bookingType", getReservationTitle(getReservationCategory(path)));
+  params.set("reservationTitle", getReservationTitle(getReservationCategory(path)));
+  params.set("step", "about-you");
+  params.set("hideSteps", "true");
+  params.set("hideCardIcon", "true");
+  window.location.assign(buildMenuUrl(params.toString(), qrContext, "/checkout"));
   setOpen(false);
 }
 
-function initReservation(root, context) {
+/** Reservation categories fetch aur reservation submit — dono ab Redux thunks (`dispatch(...).unwrap()`) se jaate hain. */
+function initReservation(root, context, dispatch) {
   const form = root.querySelector("#reserve-form");
   if (!form) return () => {};
 
@@ -336,7 +349,8 @@ function initReservation(root, context) {
   };
   updateTitle(preferredCategory || "TABLE_RESERVATION");
 
-  fetchReservationCategories(context)
+  dispatch(fetchReservationCategories(context))
+    .unwrap()
     .then((categories) => {
       if (preferredCategory && categories.some(({ value }) => value === preferredCategory)) {
         categoryField.value = preferredCategory;
@@ -358,22 +372,27 @@ function initReservation(root, context) {
     const gameName = searchParams.get("gameName");
     const extraDetails = queryExtraDetails || (gameId || gameName ? { id: gameId, name: gameName } : null);
     try {
-      await createReservation({
-        companyId: context.companyId,
-        branchId: context.branchId,
-        guestName: data.get("name"),
-        mobile: data.get("phone"),
-        dateOfBirth: data.get("dateOfBirth") || null,
-        guestCount: Number(data.get("guests") || 1),
-        reservationDateTime,
-        email: data.get("email") || "",
-        reservationTitle: data.get("reservationCategory") || "TABLE_RESERVATION",
-        tableId: searchParams.get("tableId") || context.tableId || "",
-        moduleId: searchParams.get("moduleId") || context.moduleId || "",
-        specialRequest: data.get("notes") || "",
-        reservationCategory: data.get("reservationCategory"),
-        extraDetails,
-      }, context.tableSessionId);
+      await dispatch(
+        submitReservation({
+          payload: {
+            companyId: context.companyId,
+            branchId: context.branchId,
+            guestName: data.get("name"),
+            mobile: data.get("phone"),
+            dateOfBirth: data.get("dateOfBirth") || null,
+            guestCount: Number(data.get("guests") || 1),
+            reservationDateTime,
+            email: data.get("email") || "",
+            reservationTitle: data.get("reservationCategory") || "TABLE_RESERVATION",
+            tableId: searchParams.get("tableId") || context.tableId || "",
+            moduleId: searchParams.get("moduleId") || context.moduleId || "",
+            specialRequest: data.get("notes") || "",
+            reservationCategory: data.get("reservationCategory"),
+            extraDetails,
+          },
+          tableSessionId: context.tableSessionId,
+        }),
+      ).unwrap();
       if (note) note.textContent = "Reservation request received. We’ll confirm shortly.";
       form.reset();
     } catch (error) {
@@ -425,7 +444,12 @@ function renderGameCards(games, type, search, qrContext) {
   }).join("");
 }
 
-function initGamesApi(root, type, context, search, qrContext) {
+/**
+ * Sirf rendering + filter/search UI. Data ab yahan fetch nahi hota — ye
+ * Redux state (games slice) se aata hai aur is function ko already-loaded
+ * form me milta hai.
+ */
+function renderGamesGrid(root, type, gameState, search, qrContext) {
   const prefix = type === "playstation" ? "ps" : "bg";
   const grid = root.querySelector(`#${prefix}-grid`);
   const empty = root.querySelector(`#${prefix}-empty`);
@@ -434,12 +458,29 @@ function initGamesApi(root, type, context, search, qrContext) {
   const searchInput = root.querySelector(`#${prefix}-search`);
   if (!grid || !filters) return () => {};
 
-  let cancelled = false;
-  let games = [];
+  const { items: games, status, error } = gameState;
   let activeCategory = "all";
   let query = "";
 
   const render = () => {
+    if (status === "loading" || status === "idle") {
+      grid.innerHTML = '<p class="bg-loading">Loading games...</p>';
+      grid.hidden = false;
+      if (empty) empty.hidden = true;
+      if (count) count.textContent = "";
+      return;
+    }
+    if (status === "failed") {
+      console.error(error);
+      grid.innerHTML = "";
+      grid.hidden = true;
+      if (empty) {
+        empty.hidden = false;
+        const message = empty.querySelector("p");
+        if (message) message.textContent = "Unable to load games right now.";
+      }
+      return;
+    }
     const normalizedQuery = query.trim().toLowerCase();
     const visible = games.filter((game) => {
       const categoryMatches = activeCategory === "all" || game.categories.includes(activeCategory);
@@ -470,31 +511,9 @@ function initGamesApi(root, type, context, search, qrContext) {
 
   filters.addEventListener("click", onFilter);
   searchInput?.addEventListener("input", onSearch);
-  grid.innerHTML = '<p class="bg-loading">Loading games...</p>';
-
-  fetchGames(type, {
-    companyId: context?.companyId,
-    branchId: context?.branchId,
-  })
-    .then((loadedGames) => {
-      if (cancelled) return;
-      games = loadedGames;
-      render();
-    })
-    .catch((error) => {
-      if (cancelled) return;
-      console.error(error);
-      grid.innerHTML = "";
-      grid.hidden = true;
-      if (empty) {
-        empty.hidden = false;
-        const message = empty.querySelector("p");
-        if (message) message.textContent = "Unable to load games right now.";
-      }
-    });
+  render();
 
   return () => {
-    cancelled = true;
     filters.removeEventListener("click", onFilter);
     searchInput?.removeEventListener("input", onSearch);
   };
@@ -506,6 +525,10 @@ export default function App() {
   const dispatch = useDispatch();
   const qrContext = useSelector(selectQrContext);
   const qrContextStatus = useSelector(selectQrContextStatus);
+  const gamesByType = useSelector(selectGames);
+  const customMomentsState = useSelector(selectCustomMoments);
+  const celebrationPackagesByType = useSelector(selectCelebrationPackages);
+  const membershipState = useSelector(selectMembership);
   const rootRef = useRef(null);
   const path = normalizePath(location.pathname);
   const html = (pages[path] ?? pages["/"]).replace(
@@ -578,7 +601,7 @@ export default function App() {
       }
       if (isReservationTrigger(link)) {
         e.preventDefault();
-        openReservation(location.search, path, setOpen);
+        openReservation(location.search, path, qrContext, setOpen);
         return;
       }
       if ((href === LIVE_SPORTS_URL || href === EVENTS_URL) && location.search) {
@@ -645,7 +668,7 @@ export default function App() {
       }
       if (isReservationTrigger(e.currentTarget)) {
         e.preventDefault();
-        openReservation(location.search, path, setOpen);
+        openReservation(location.search, path, qrContext, setOpen);
       }
     };
     buttons.forEach((button) => button.addEventListener("click", onButton));
@@ -663,7 +686,7 @@ export default function App() {
       }
     };
     forms.forEach(f => f.addEventListener("submit", onSubmit));
-    const cleanupReservation = initReservation(root, getRequestContext(location.search, qrContext));
+    const cleanupReservation = initReservation(root, getRequestContext(location.search, qrContext), dispatch);
 
     // Keep hash navigation working after React route changes.
     if (location.hash) {
@@ -689,113 +712,129 @@ export default function App() {
     };
   }, [path, location.hash, location.search, qrContext, qrContextStatus]);
 
-  useEffect(() => {
-    if (path !== "/playstation" && path !== "/board-games") return undefined;
-    const qrGameContext = getGameContext(location.search, qrContext);
-    if (qrContextStatus === "loading" && location.search && !qrGameContext) return undefined;
-    const gameContext = qrGameContext || DEFAULT_CONTEXT;
-    return initGamesApi(rootRef.current, path === "/playstation" ? "playstation" : "board-games", {
-      companyId: gameContext.companyId,
-      branchId: gameContext.branchId,
-    }, location.search, qrContext);
-  }, [path, location.search, qrContext, qrContextStatus]);
+  const gamesType = path === "/playstation" ? "playstation" : path === "/board-games" ? "board-games" : null;
 
+  // 1. Data fetching — Redux thunk.
+  useEffect(() => {
+    if (!gamesType) return;
+    const qrGameContext = getGameContext(location.search, qrContext);
+    if (qrContextStatus === "loading" && location.search && !qrGameContext) return;
+    const gameContext = qrGameContext || DEFAULT_CONTEXT;
+    dispatch(fetchGames({ type: gamesType, companyId: gameContext.companyId, branchId: gameContext.branchId }));
+  }, [gamesType, location.search, qrContext, qrContextStatus, dispatch]);
+
+  // 2. Rendering — Redux state (games slice) se, fetch se decoupled.
+  useEffect(() => {
+    if (!gamesType) return undefined;
+    return renderGamesGrid(rootRef.current, gamesType, gamesByType[gamesType], location.search, qrContext);
+  }, [gamesType, gamesByType, location.search, qrContext]);
+
+  // 1. Data fetching — Redux thunk.
+  useEffect(() => {
+    if (path !== "/make-it-your-moment") return;
+    dispatch(fetchCustomMoments(getCustomMomentContext(location.search, qrContext)));
+  }, [path, location.search, qrContext, dispatch]);
+
+  // 2. Rendering — Redux state (customMoments slice) se.
   useEffect(() => {
     if (path !== "/make-it-your-moment") return undefined;
 
     const grid = rootRef.current?.querySelector("#moment-grid");
     if (!grid) return undefined;
 
-    const controller = new AbortController();
     const cards = [...grid.querySelectorAll(".bg-card")];
-    const loading = document.createElement("p");
-    loading.className = "bg-loading";
-    loading.textContent = "Loading moments...";
-    loading.setAttribute("role", "status");
-    cards.forEach((card) => {
-      card.hidden = true;
-    });
-    grid.prepend(loading);
-    grid.setAttribute("aria-busy", "true");
+    let loading = grid.querySelector(":scope > .bg-loading");
+    if (!loading) {
+      loading = document.createElement("p");
+      loading.className = "bg-loading";
+      loading.setAttribute("role", "status");
+      grid.prepend(loading);
+    }
 
-    fetchCustomMoments(getCustomMomentContext(location.search, qrContext), {
-      signal: controller.signal,
-    })
-      .then((moments) => {
-        loading.remove();
-        grid.setAttribute("aria-busy", "false");
-        cards.forEach((card) => {
-          card.hidden = true;
-        });
-        moments.forEach((moment, index) => {
-          const card = cards[index];
-          if (!card) return;
-          card.dataset.name = moment.name.toLowerCase();
-          card.dataset.categories = moment.category;
-          card.dataset.id = moment.id;
-          const bookButton = card.querySelector("[data-action='book']");
-          if (bookButton) bookButton.dataset.id = moment.id;
-          const title = card.querySelector(".bg-card__title");
-          const description = card.querySelector(".bg-card__desc");
-          const price = card.querySelector(".bg-card__meta li span");
-          const status = card.querySelector(".bg-card__status span:last-child");
-          const image = card.querySelector(".bg-card__media img");
-          if (title) title.textContent = moment.name;
-          if (description && moment.description) description.textContent = moment.description;
-          if (price && moment.price) price.textContent = `AED ${moment.price}`;
-          if (status) status.textContent = moment.available ? "Available" : "Unavailable";
-          if (image && moment.image) {
-            image.src = moment.image.startsWith("http")
-              ? moment.image
-              : `${URLS.assets.imageBase}${moment.image.startsWith("/") ? "" : "/"}${moment.image}`;
-          }
-          card.hidden = !moment.available;
-        });
-        const count = grid.parentElement?.querySelector("#moment-count");
-        const availableCount = moments.filter((moment) => moment.available).length;
-        if (count) count.textContent = `${availableCount} moment${availableCount === 1 ? "" : "s"}`;
-        if (!availableCount) {
-          loading.textContent = "No moments are available right now.";
-          loading.hidden = false;
-          grid.append(loading);
-        }
-      })
-      .catch((error) => {
-        if (error.name === "AbortError") return;
-        console.error("Unable to load custom moments", error);
-        loading.textContent = "Unable to load moments right now.";
-        grid.setAttribute("aria-busy", "false");
-      });
+    const { items: moments, status, error } = customMomentsState;
 
-    return () => {
-      controller.abort();
-      loading.remove();
+    if (status === "loading" || status === "idle") {
+      loading.textContent = "Loading moments...";
+      loading.hidden = false;
+      grid.setAttribute("aria-busy", "true");
+      cards.forEach((card) => { card.hidden = true; });
+      return undefined;
+    }
+
+    if (status === "failed") {
+      console.error("Unable to load custom moments", error);
+      loading.textContent = "Unable to load moments right now.";
+      loading.hidden = false;
       grid.setAttribute("aria-busy", "false");
-    };
-  }, [path, location.search, qrContext]);
+      cards.forEach((card) => { card.hidden = true; });
+      return undefined;
+    }
 
+    loading.remove();
+    grid.setAttribute("aria-busy", "false");
+    cards.forEach((card) => { card.hidden = true; });
+    moments.forEach((moment, index) => {
+      const card = cards[index];
+      if (!card) return;
+      card.dataset.name = moment.name.toLowerCase();
+      card.dataset.categories = moment.category;
+      card.dataset.id = moment.id;
+      const bookButton = card.querySelector("[data-action='book']");
+      if (bookButton) bookButton.dataset.id = moment.id;
+      const title = card.querySelector(".bg-card__title");
+      const description = card.querySelector(".bg-card__desc");
+      const price = card.querySelector(".bg-card__meta li span");
+      const momentStatus = card.querySelector(".bg-card__status span:last-child");
+      const image = card.querySelector(".bg-card__media img");
+      if (title) title.textContent = moment.name;
+      if (description && moment.description) description.textContent = moment.description;
+      if (price && moment.price) price.textContent = `AED ${moment.price}`;
+      if (momentStatus) momentStatus.textContent = moment.available ? "Available" : "Unavailable";
+      if (image && moment.image) image.src = getImageUrl(moment.image);
+      card.hidden = !moment.available;
+    });
+    const count = grid.parentElement?.querySelector("#moment-count");
+    const availableCount = moments.filter((moment) => moment.available).length;
+    if (count) count.textContent = `${availableCount} moment${availableCount === 1 ? "" : "s"}`;
+    if (!availableCount) {
+      const empty = document.createElement("p");
+      empty.className = "bg-loading";
+      empty.textContent = "No moments are available right now.";
+      grid.append(empty);
+      return () => empty.remove();
+    }
+    return undefined;
+  }, [path, customMomentsState]);
+
+  const celebrationType = path === "/birthday-celebrations" ? "birthday" : path === "/corporate-bookings" ? "corporate" : null;
+
+  // 1. Data fetching — Redux thunk.
   useEffect(() => {
-    const type = path === "/birthday-celebrations" ? "birthday" : path === "/corporate-bookings" ? "corporate" : null;
-    if (!type) return undefined;
+    if (!celebrationType) return;
+    const context = getCelebrationContext(location.search, qrContext, celebrationType);
+    dispatch(fetchCelebrationPackages({ type: celebrationType, ...context }));
+  }, [celebrationType, location.search, qrContext, dispatch]);
+
+  // 2. Rendering + selection UI — Redux state (celebrationPackages slice) se.
+  useEffect(() => {
+    if (!celebrationType) return undefined;
 
     const packageGrid = rootRef.current?.querySelector(".offer-packages");
     const bookingLink = rootRef.current?.querySelector(".offer-sheet__cta");
     if (!packageGrid || !bookingLink) return undefined;
 
     const cards = [...packageGrid.querySelectorAll(".offer-package")];
-    const loading = document.createElement("p");
-    loading.className = "bg-loading";
-    loading.textContent = "Loading packages...";
-    loading.setAttribute("role", "status");
-    cards.forEach((card) => { card.hidden = true; });
-    packageGrid.prepend(loading);
+    let loading = packageGrid.querySelector(":scope > .bg-loading");
+    if (!loading) {
+      loading = document.createElement("p");
+      loading.className = "bg-loading";
+      loading.setAttribute("role", "status");
+      packageGrid.prepend(loading);
+    }
     bookingLink.dataset.packageBook = "true";
     bookingLink.href = "#book-package";
-    bookingLink.textContent = "Select a package first";
     bookingLink.setAttribute("aria-disabled", "true");
 
-    const controller = new AbortController();
-    const context = getCelebrationContext(location.search, qrContext, type);
     const onSelect = (event) => {
       const selectedCard = event.target.closest(".offer-package[data-package-details]");
       if (!selectedCard || !packageGrid.contains(selectedCard)) return;
@@ -813,53 +852,66 @@ export default function App() {
     packageGrid.addEventListener("click", onSelect);
     packageGrid.addEventListener("keydown", onKeyDown);
 
-    fetchCelebrationPackages(type, { ...context, signal: controller.signal })
-      .then((packages) => {
-        loading.remove();
-        cards.forEach((card) => { card.hidden = true; });
-        packages.forEach((item, index) => {
-          const card = cards[index];
-          if (!card) return;
-          card.hidden = false;
-          const title = card.querySelector("h2");
-          const description = card.querySelector("p");
-          if (title) title.textContent = `${item.name}${item.price ? ` — ${item.price}` : ""}`;
-          if (description) description.textContent = item.description;
-          const details = JSON.stringify({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            description: item.description,
-            type: `${type}-package`,
-            categoryName: type === "birthday" ? "Birthday Celebrations" : "Corporate Bookings",
-            category: type === "birthday" ? "BIRTHDAY" : "CORPORATE",
-            bookingType: type === "birthday" ? "Birthday Celebration" : "Corporate Booking",
-          });
-          card.dataset.packageDetails = details;
-          card.setAttribute("role", "button");
-          card.setAttribute("tabindex", "0");
-          card.setAttribute("aria-label", `Select ${item.name}`);
+    const { items: packages, status, error } = celebrationPackagesByType[celebrationType];
+
+    if (status === "loading" || status === "idle") {
+      loading.textContent = "Loading packages...";
+      loading.hidden = false;
+      cards.forEach((card) => { card.hidden = true; });
+      bookingLink.textContent = "Select a package first";
+    } else if (status === "failed") {
+      console.error(`Unable to load ${celebrationType} packages`, error);
+      loading.textContent = "Unable to load packages right now.";
+      loading.hidden = false;
+      cards.forEach((card) => { card.hidden = true; });
+      bookingLink.textContent = "Select a package first";
+    } else {
+      loading.remove();
+      cards.forEach((card) => { card.hidden = true; });
+      packages.forEach((item, index) => {
+        const card = cards[index];
+        if (!card) return;
+        card.hidden = false;
+        const title = card.querySelector("h2");
+        const description = card.querySelector("p");
+        if (title) title.textContent = `${item.name}${item.price ? ` — ${item.price}` : ""}`;
+        if (description) description.textContent = item.description;
+        const details = JSON.stringify({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          description: item.description,
+          moduleId: item.moduleId || item.moduleID || DEFAULT_CELEBRATION_MODULE_IDS[celebrationType],
+          type: `${celebrationType}-package`,
+          categoryName: celebrationType === "birthday" ? "Birthday Celebrations" : "Corporate Bookings",
+          category: celebrationType === "birthday" ? "BIRTHDAY" : "CORPORATE",
+          bookingType: celebrationType === "birthday" ? "Birthday Celebration" : "Corporate Booking",
         });
-        if (!packages.length) {
-          loading.textContent = "No packages are available right now.";
-          packageGrid.append(loading);
-        }
-      })
-      .catch((error) => {
-        if (error.name === "AbortError") return;
-        console.error(`Unable to load ${type} packages`, error);
-        loading.textContent = "Unable to load packages right now.";
-        cards.forEach((card) => { card.hidden = true; });
+        card.dataset.packageDetails = details;
+        card.setAttribute("role", "button");
+        card.setAttribute("tabindex", "0");
+        card.setAttribute("aria-label", `Select ${item.name}`);
       });
+      if (!packages.length) {
+        loading.textContent = "No packages are available right now.";
+        packageGrid.append(loading);
+      }
+      bookingLink.textContent = "Select a package first";
+    }
 
     return () => {
-      controller.abort();
       packageGrid.removeEventListener("click", onSelect);
       packageGrid.removeEventListener("keydown", onKeyDown);
-      loading.remove();
     };
-  }, [path, location.search, qrContext]);
+  }, [celebrationType, celebrationPackagesByType]);
 
+  // 1. Data fetching — Redux thunk.
+  useEffect(() => {
+    if (path !== "/privilege-membership") return;
+    dispatch(fetchMembership(getMembershipContext(location.search, qrContext)));
+  }, [path, location.search, qrContext, dispatch]);
+
+  // 2. Rendering — Redux state (membership slice) se.
   useEffect(() => {
     if (path !== "/privilege-membership") return undefined;
 
@@ -868,59 +920,67 @@ export default function App() {
     if (!panel || !bookingLink) return undefined;
 
     const context = getMembershipContext(location.search, qrContext);
-    const loading = document.createElement("p");
-    loading.className = "bg-loading";
-    loading.textContent = "Loading membership...";
-    loading.setAttribute("role", "status");
-    panel.append(loading);
+    let loading = panel.querySelector(":scope > .bg-loading");
+    if (!loading) {
+      loading = document.createElement("p");
+      loading.className = "bg-loading";
+      loading.setAttribute("role", "status");
+      panel.append(loading);
+    }
     bookingLink.dataset.packageBook = "true";
     bookingLink.href = "#join-membership";
-    bookingLink.textContent = "Loading membership...";
     bookingLink.setAttribute("aria-disabled", "true");
 
-    const controller = new AbortController();
-    fetchMembership({ ...context, signal: controller.signal })
-      .then((membership) => {
-        loading.remove();
-        const name = membership.name || membership.membershipName || "Desire Privilege Membership";
-        const price = membership.priceLabel || membership.price || "";
-        const description = membership.subtitle || "";
-        const details = JSON.stringify({
-          id: membership.id || membership.membershipId || context.moduleId,
-          name,
-          price,
-          description,
-          terms: membership.terms || "",
-          features: membership.features || [],
-          type: "membership",
-          categoryName: "Desire Privilege Membership",
-          category: "MEMBERSHIP",
-          bookingType: "Membership",
-          moduleId: context.moduleId,
-        });
-        const summary = document.createElement("p");
-        summary.className = "offer-sheet__membership-summary";
-        summary.textContent = `${name}${price ? ` — ${price}` : ""}${description ? ` · ${description}` : ""}`;
-        panel.append(summary);
-        bookingLink.dataset.packageDetails = details;
-        bookingLink.textContent = `Join ${name}`;
-        bookingLink.removeAttribute("aria-disabled");
-        const terms = panel.querySelector(".offer-sheet__terms");
-        if (terms && membership.terms) terms.textContent = membership.terms;
-      })
-      .catch((error) => {
-        if (error.name === "AbortError") return;
-        console.error("Unable to load membership", error);
-        loading.textContent = "Unable to load membership right now.";
-        bookingLink.textContent = "Membership unavailable";
-      });
+    const { data: membership, status, error } = membershipState;
+
+    if (status === "loading" || status === "idle") {
+      loading.textContent = "Loading membership...";
+      loading.hidden = false;
+      bookingLink.textContent = "Loading membership...";
+      return undefined;
+    }
+    if (status === "failed" || !membership) {
+      console.error("Unable to load membership", error);
+      loading.textContent = "Unable to load membership right now.";
+      loading.hidden = false;
+      bookingLink.textContent = "Membership unavailable";
+      return undefined;
+    }
+
+    loading.remove();
+    const name = membership.name || membership.membershipName || "Desire Privilege Membership";
+    const price = membership.priceLabel || membership.price || "";
+    const description = membership.subtitle || "";
+    const details = JSON.stringify({
+      id: membership.id || membership.membershipId || context.moduleId,
+      name,
+      price,
+      description,
+      terms: membership.terms || "",
+      features: membership.features || [],
+      type: "membership",
+      categoryName: "Desire Privilege Membership",
+      category: "MEMBERSHIP",
+      bookingType: "Membership",
+      moduleId: context.moduleId,
+    });
+    let summary = panel.querySelector(".offer-sheet__membership-summary");
+    if (!summary) {
+      summary = document.createElement("p");
+      summary.className = "offer-sheet__membership-summary";
+      panel.append(summary);
+    }
+    summary.textContent = `${name}${price ? ` — ${price}` : ""}${description ? ` · ${description}` : ""}`;
+    bookingLink.dataset.packageDetails = details;
+    bookingLink.textContent = `Join ${name}`;
+    bookingLink.removeAttribute("aria-disabled");
+    const terms = panel.querySelector(".offer-sheet__terms");
+    if (terms && membership.terms) terms.textContent = membership.terms;
 
     return () => {
-      controller.abort();
-      loading.remove();
-      panel.querySelector(".offer-sheet__membership-summary")?.remove();
+      summary?.remove();
     };
-  }, [path, location.search, qrContext]);
+  }, [path, membershipState, location.search, qrContext]);
 
   useEffect(() => {
     if (path !== "/exclusive-offers") return undefined;
@@ -997,13 +1057,21 @@ export default function App() {
     };
   }, [path, location.search, qrContext]);
 
-  if (path === "/exclusive-offers") return <ExclusiveOffersPage />;
-
-  if (path === "/menu") {
+  useEffect(() => {
+    if (path !== "/menu") return;
     const hasFreshContext = qrContext?.data && hasMatchingParams(location.search, qrContext.params);
     const canRedirect = !location.search || hasFreshContext || qrContextStatus === "failed";
     if (canRedirect) window.location.replace(buildMenuUrl(location.search, qrContext));
-    return null;
+  }, [path, location.search, qrContext, qrContextStatus]);
+
+  if (path === "/exclusive-offers") return <ExclusiveOffersPage />;
+
+  if (path === "/menu") {
+    return (
+      <div className="lounge-page lounge-page--redirect" role="status" aria-live="polite">
+        <p className="bg-loading">Opening menu...</p>
+      </div>
+    );
   }
 
   return <div ref={rootRef} className="lounge-page" dangerouslySetInnerHTML={{ __html: html }} />;

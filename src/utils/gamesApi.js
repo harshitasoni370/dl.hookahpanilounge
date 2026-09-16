@@ -1,3 +1,5 @@
+import { apiRequest } from "./apiClient";
+import { API } from "../config/urls";
 import { getImageUrl } from "./imageUrl";
 
 const DEFAULT_CONTEXT = {
@@ -33,8 +35,14 @@ export function normalizeGames(payload) {
       ...game,
       id: asText(game.id || game.gameId || game.code, `game-${index + 1}`),
       name,
-      players: asText(game.players || game.playerCount || game.noOfPlayers || (game.playersMin && `${game.playersMin} - ${game.playersMax}`), "Ask staff"),
-      duration: asText(game.duration || game.playTime || game.time || (game.durationMin && `${game.durationMin} - ${game.durationMax} min`), "Available on request"),
+      players: asText(
+        game.players || game.playerCount || game.noOfPlayers || (game.playersMin && `${game.playersMin} - ${game.playersMax}`),
+        "Ask staff",
+      ),
+      duration: asText(
+        game.duration || game.playTime || game.time || (game.durationMin && `${game.durationMin} - ${game.durationMax} min`),
+        "Available on request",
+      ),
       difficulty: asText(game.difficulty || game.level, "All levels"),
       status: game.isAvailable === false ? "in-use" : asText(game.status || game.availability, "available").toLowerCase(),
       categories: (Array.isArray(categories) ? categories : [categories])
@@ -47,13 +55,29 @@ export function normalizeGames(payload) {
   });
 }
 
-export async function fetchGames(type, context = {}) {
+export async function fetchGames(type, context = {}, { signal } = {}) {
   const companyId = context.companyId || DEFAULT_CONTEXT.companyId;
   const branchId = context.branchId || DEFAULT_CONTEXT.branchId;
-  const proxyUrl = `/api/games?type=${encodeURIComponent(type)}&companyId=${encodeURIComponent(companyId)}&branchId=${encodeURIComponent(branchId)}`;
-  const response = await fetch(proxyUrl);
-  if (!response.ok) throw new Error(`Failed to load ${type} games (${response.status})`);
-  return normalizeGames(await response.json());
+  const directUrl = type === "playstation" ? API.upstream.playstationGames : API.upstream.boardGames;
+
+  let payload;
+  try {
+    payload = await apiRequest(directUrl, {
+      params: { type, companyId, branchId },
+      signal,
+    });
+  } catch (error) {
+    const isBrowserContractFailure = error?.status === 415 || error instanceof TypeError;
+    if (!isBrowserContractFailure) throw error;
+
+    const fallbackPath = type === "playstation"
+      ? "/assets/data/playstation.json"
+      : "/assets/data/board-games.json";
+    const fallbackResponse = await fetch(fallbackPath, { signal });
+    if (!fallbackResponse.ok) throw error;
+    payload = await fallbackResponse.json();
+  }
+  return normalizeGames(payload);
 }
 
 export { DEFAULT_CONTEXT };

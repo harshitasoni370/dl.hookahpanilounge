@@ -1,4 +1,5 @@
-import { URLS } from "../config/urls";
+import { apiRequest } from "./apiClient";
+import { API } from "../config/urls";
 
 function unwrap(payload) {
   if (Array.isArray(payload)) return payload;
@@ -9,28 +10,26 @@ function unwrap(payload) {
   return [];
 }
 
-export async function fetchReservationCategories({ companyId, branchId }) {
-  const params = new URLSearchParams({ companyId, branchId });
-  const response = await fetch(`${URLS.api.reservationCategories}?${params}`);
-  if (!response.ok) throw new Error(`Failed to load reservation categories (${response.status})`);
-  return unwrap(await response.json()).map((category) => ({
-    value: String(category.value || category.categoryCode || category.code || category.categoryId || category.id || category.name || category.categoryName),
+export async function fetchReservationCategories({ companyId, branchId, signal } = {}) {
+  const params = { companyId, branchId };
+  const payload = await apiRequest(API.upstream.reservationCategories, {
+    params,
+    signal,
+  });
+  return unwrap(payload).map((category) => ({
+    value: String(
+      category.value || category.categoryCode || category.code || category.categoryId || category.id || category.name || category.categoryName,
+    ),
     label: String(category.label || category.name || category.categoryName || category.value),
   }));
 }
 
-export async function createReservation(payload, tableSessionId) {
-  const response = await fetch(URLS.api.createReservation, {
+export async function createReservation(payload, tableSessionId, { signal } = {}) {
+  const headers = tableSessionId ? { "Table-Session-Id": tableSessionId } : {};
+  return apiRequest(API.upstream.createReservation, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(tableSessionId ? { "Table-Session-Id": tableSessionId } : {}),
-    },
-    body: JSON.stringify(payload),
+    body: payload,
+    headers,
+    signal,
   });
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || `Reservation failed (${response.status})`);
-  }
-  return response.status === 204 ? null : response.json();
 }
