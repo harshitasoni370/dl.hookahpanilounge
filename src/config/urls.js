@@ -8,13 +8,18 @@ const gamesApiDefaults = {
   uat: "https://fumesandflavoursapi.cylsysuat.com/api",
   production: "https://api.thedesirelounge.com/api",
 };
+const reservationApiDefaults = {
+  uat: "https://restaurents-api.cylsys.com/api",
+  production: "https://restaurents-api.cylsys.com/api",
+};
 
 export const URLS = {
   api: {
     qrContext: import.meta.env.VITE_QR_CONTEXT_API_URL || apiDefaults[environment],
     gamesBase: import.meta.env.VITE_GAMES_API_URL || gamesApiDefaults[environment],
-    reservationCategories: import.meta.env.VITE_RESERVATION_CATEGORIES_API_URL || `${gamesApiDefaults[environment]}/Reservation/getReservationCategories`,
-    createReservation: import.meta.env.VITE_CREATE_RESERVATION_API_URL || `${gamesApiDefaults[environment]}/Reservation/CraeteReservation`,
+    reservationCategories: import.meta.env.VITE_RESERVATION_CATEGORIES_API_URL || `${reservationApiDefaults[environment]}/Reservation/getReservationCategories`,
+    createReservation: import.meta.env.VITE_CREATE_RESERVATION_API_URL || `${reservationApiDefaults[environment]}/Reservation/CraeteReservation`,
+    customMoments: import.meta.env.VITE_CUSTOM_MOMENTS_API_URL || "/api/custom-moments",
   },
   app: {
     menu: import.meta.env.VITE_MENU_URL || "/menu",
@@ -50,7 +55,7 @@ export const URLS = {
   assets: {
     menu: "/assets/data/menu.json",
     boardGames: "/assets/data/board-games.json",
-    imageBase: import.meta.env.VITE_IMAGE_BASE_URL || "https://fumesandflavoursapi.cylsysuat.com",
+    imageBase: import.meta.env.VITE_IMAGE_BASE_URL || "https://restaurents-api.cylsys.com",
   },
   environment,
 };

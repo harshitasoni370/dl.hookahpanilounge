@@ -19,10 +19,13 @@ export async function fetchReservationCategories({ companyId, branchId }) {
   }));
 }
 
-export async function createReservation(payload) {
+export async function createReservation(payload, tableSessionId) {
   const response = await fetch(URLS.api.createReservation, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(tableSessionId ? { "Table-Session-Id": tableSessionId } : {}),
+    },
     body: JSON.stringify(payload),
   });
   if (!response.ok) {

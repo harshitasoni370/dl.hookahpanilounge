@@ -5,6 +5,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchQrContext, selectQrContext, selectQrContextStatus } from "./store/slices/qrContextSlice";
 import { DEFAULT_CONTEXT, fetchGames } from "./utils/gamesApi";
 import { createReservation, fetchReservationCategories } from "./utils/reservationApi";
+import { DEFAULT_CUSTOM_MOMENT_CONTEXT, fetchCustomMoments } from "./utils/customMomentsApi";
+import { URLS } from "./config/urls";
 
 const MENU_APP_URL = import.meta.env.VITE_MENU_APP_URL || "https://app.thedesirelounge.com";
 const RESERVATION_URL = import.meta.env.VITE_RESERVATION_URL || "https://thedesirelounge.com/";
@@ -45,6 +47,34 @@ function buildGameMenuUrl(search, qrContext, type, game) {
   return url.toString();
 }
 
+function buildMomentMenuUrl(search, qrContext, moment, context) {
+  const url = new URL(buildMenuUrl(search, qrContext, "/checkout"));
+  url.searchParams.set("companyId", context.companyId);
+  url.searchParams.set("branchId", context.branchId);
+  url.searchParams.set("sessionId", context.tableSessionId);
+  if (isGuid(context.tableId)) {
+    url.searchParams.set("tableId", context.tableId);
+  }
+  url.searchParams.set("categoryName", "Custom Moments");
+  url.searchParams.set("category", "EVENT");
+  url.searchParams.set("reservationCategory", "EVENT");
+  url.searchParams.set("eventName", moment.name);
+  url.searchParams.set("bookingType", "Custom Moment");
+  url.searchParams.set("momentName", moment.name);
+  url.searchParams.set("momentId", moment.id);
+  if (moment.price) url.searchParams.set("price", moment.price);
+  url.searchParams.set("sessionType", "Custom Moment");
+  url.searchParams.set("extraDetails", JSON.stringify({
+    id: moment.id,
+    name: moment.name,
+    price: moment.price || null,
+  }));
+  url.searchParams.set("step", "about-you");
+  url.searchParams.set("hideSteps", "true");
+  url.searchParams.set("hideCardIcon", "true");
+  return url.toString();
+}
+
 function hasMatchingParams(search, contextParams) {
   const currentParams = new URLSearchParams(search);
   return Object.entries(contextParams || {}).every(([key, value]) => currentParams.get(key) === value);
@@ -60,6 +90,36 @@ function getGameContext(search, qrContext) {
 
 function getRequestContext(search, qrContext) {
   return getGameContext(search, qrContext) || DEFAULT_CONTEXT;
+}
+
+function getCustomMomentContext(search, qrContext) {
+  const params = new URLSearchParams(search);
+  const data = qrContext?.data || {};
+  return {
+    companyId: data.companyId || params.get("companyId") || DEFAULT_CUSTOM_MOMENT_CONTEXT.companyId,
+    branchId: data.branchId || params.get("branchId") || DEFAULT_CUSTOM_MOMENT_CONTEXT.branchId,
+    typeId: data.typeId || params.get("typeId") || DEFAULT_CUSTOM_MOMENT_CONTEXT.typeId,
+    search: params.get("momentSearch") || "The",
+    tableSessionId:
+      data.tableSessionId ||
+      data.sessionId ||
+      params.get("tableSessionId") ||
+      params.get("sessionId") ||
+      DEFAULT_CUSTOM_MOMENT_CONTEXT.tableSessionId,
+    tableId:
+      data.tableId ||
+      params.get("tableId") ||
+      data.tableNumber ||
+      data.tableNo ||
+      params.get("tableNumber") ||
+      params.get("tableNo") ||
+      "",
+    moduleId: data.moduleId || params.get("moduleId") || "",
+  };
+}
+
+function isGuid(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value || "");
 }
 
 function getReservationCategory(path) {
@@ -149,9 +209,16 @@ function initReservation(root, context) {
         dateOfBirth: null,
         guestCount: Number(data.get("guests")),
         reservationDateTime,
+        email: data.get("email") || "",
+        reservationTitle: null,
+        ...(isGuid(context.tableId) ? { tableId: context.tableId } : {}),
+        moduleId: context.moduleId || "",
         specialRequest: data.get("notes") || "",
         reservationCategory: data.get("reservationCategory"),
-      });
+        extraDetails: context.momentId
+          ? { id: context.momentId, name: context.momentName }
+          : null,
+      }, context.tableSessionId);
       if (note) note.textContent = "Reservation request received. We’ll confirm shortly.";
       form.reset();
     } catch (error) {
@@ -381,6 +448,24 @@ export default function App() {
     links.forEach(a => a.addEventListener("click", onLink));
     const buttons = [...root.querySelectorAll("button")];
     const onButton = (e) => {
+      if (path === "/make-it-your-moment") {
+        const button = e.currentTarget;
+        const card = button.closest(".bg-card");
+        if (card && button.matches("[data-action='book']")) {
+          e.preventDefault();
+          const name = card.querySelector(".bg-card__title")?.textContent?.trim() || "Custom Moment";
+          const id = card.dataset.id || "custom-moment";
+          const priceText = card.querySelector(".bg-card__meta li span")?.textContent || "";
+          const price = priceText.match(/[\d.]+/)?.[0] || "";
+          window.location.assign(buildMomentMenuUrl(
+            location.search,
+            qrContext,
+            { id, name, price },
+            getCustomMomentContext(location.search, qrContext),
+          ));
+          return;
+        }
+      }
       if (isReservationTrigger(e.currentTarget)) {
         e.preventDefault();
         openReservation(location.search, path, setOpen);
@@ -393,7 +478,7 @@ export default function App() {
     const onSubmit = (e) => {
       const form = e.currentTarget;
       if (!form.checkValidity()) return;
-      if (form.id === "reserve-form") {
+      if (form.id === "reserve-form" && path !== "/make-it-your-moment") {
         e.preventDefault();
         const note = form.querySelector("#reserve-note");
         if (note) note.textContent = "Reservation request received. We’ll confirm shortly.";
@@ -437,6 +522,56 @@ export default function App() {
       branchId: gameContext.branchId,
     }, location.search, qrContext);
   }, [path, location.search, qrContext, qrContextStatus]);
+
+  useEffect(() => {
+    if (path !== "/make-it-your-moment") return undefined;
+
+    const grid = rootRef.current?.querySelector("#moment-grid");
+    if (!grid) return undefined;
+
+    const controller = new AbortController();
+    fetchCustomMoments(getCustomMomentContext(location.search, qrContext), {
+      signal: controller.signal,
+    })
+      .then((moments) => {
+        const cards = [...grid.querySelectorAll(".bg-card")];
+        cards.forEach((card) => {
+          card.hidden = true;
+        });
+        moments.forEach((moment, index) => {
+          const card = cards[index];
+          if (!card) return;
+          card.dataset.name = moment.name.toLowerCase();
+          card.dataset.categories = moment.category;
+          card.dataset.id = moment.id;
+          const bookButton = card.querySelector("[data-action='book']");
+          if (bookButton) bookButton.dataset.id = moment.id;
+          const title = card.querySelector(".bg-card__title");
+          const description = card.querySelector(".bg-card__desc");
+          const price = card.querySelector(".bg-card__meta li span");
+          const status = card.querySelector(".bg-card__status span:last-child");
+          const image = card.querySelector(".bg-card__media img");
+          if (title) title.textContent = moment.name;
+          if (description && moment.description) description.textContent = moment.description;
+          if (price && moment.price) price.textContent = `AED ${moment.price}`;
+          if (status) status.textContent = moment.available ? "Available" : "Unavailable";
+          if (image && moment.image) {
+            image.src = moment.image.startsWith("http")
+              ? moment.image
+              : `${URLS.assets.imageBase}${moment.image.startsWith("/") ? "" : "/"}${moment.image}`;
+          }
+          card.hidden = !moment.available;
+        });
+        const count = grid.parentElement?.querySelector("#moment-count");
+        const availableCount = moments.filter((moment) => moment.available).length;
+        if (count) count.textContent = `${availableCount} moment${availableCount === 1 ? "" : "s"}`;
+      })
+      .catch((error) => {
+        if (error.name !== "AbortError") console.error("Unable to load custom moments", error);
+      });
+
+    return () => controller.abort();
+  }, [path, location.search, qrContext]);
 
   if (path === "/menu") {
     const hasFreshContext = qrContext?.data && hasMatchingParams(location.search, qrContext.params);
