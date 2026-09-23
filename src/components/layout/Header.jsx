@@ -109,7 +109,7 @@ export default function Header() {
       <div
         ref={backdropRef}
         id="drawer-backdrop"
-        className="drawer-backdrop"
+        className="lounge-drawer__backdrop"
         onClick={handleBackdropClick}
         hidden
       />
