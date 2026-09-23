@@ -6,6 +6,9 @@ import customMomentsReducer from "./slices/customMomentsSlice";
 import celebrationPackagesReducer from "./slices/celebrationPackagesSlice";
 import membershipReducer from "./slices/membershipSlice";
 import reservationReducer from "./slices/reservationSlice";
+import headerModulesReducer from "./slices/modulesSlice";
+import cardModuleReducer from "./slices/cardModuleSlice";
+import packageModuleReducer from "./slices/packageSlice";
 
 export const store = configureStore({
   reducer: {
@@ -16,5 +19,8 @@ export const store = configureStore({
     celebrationPackages: celebrationPackagesReducer,
     membership: membershipReducer,
     reservation: reservationReducer,
+    headerModules: headerModulesReducer,
+    cardModule: cardModuleReducer,
+    packageModule: packageModuleReducer,
   },
 });

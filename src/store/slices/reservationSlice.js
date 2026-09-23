@@ -11,7 +11,8 @@ export const fetchReservationCategories = createAsyncThunk(
 
 export const submitReservation = createAsyncThunk(
   "reservation/submit",
-  async ({ payload, tableSessionId }, { signal }) => createReservationApi(payload, tableSessionId, { signal }),
+  async ({ payload, tableSessionId, deviceId }, { signal }) =>
+    createReservationApi(payload, tableSessionId, { signal, deviceId }),
 );
 
 const reservationSlice = createSlice({

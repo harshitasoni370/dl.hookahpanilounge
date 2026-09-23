@@ -1,0 +1,40 @@
+import { apiRequest } from "./apiClient";
+import { API } from "../config/urls";
+import {
+  getOrCreateDeviceId as resolveDeviceId,
+  getOrCreateDeviceIdSync as resolveDeviceIdSync,
+} from "./deviceId";
+
+export { persistDeviceId, readUrlDeviceId } from "./deviceId";
+
+export function getOrCreateDeviceIdSync(search) {
+  return resolveDeviceIdSync(search);
+}
+
+export async function getOrCreateDeviceId(search) {
+  return resolveDeviceId(search);
+}
+
+export async function fetchQrContextApi(
+  params,
+  { signal } = {}
+) {
+  return apiRequest(API.upstream.qrContext, {
+    params,
+    signal,
+  });
+}
+
+export async function checkDeviceApi(
+  { deviceId, companyId },
+  { signal } = {}
+) {
+  return apiRequest(API.upstream.qrCheckDevice, {
+    method: "POST",
+    body: {
+      deviceId,
+      companyId,
+    },
+    signal,
+  });
+}
