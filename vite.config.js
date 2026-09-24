@@ -1,6 +1,5 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
-/** URL dekh kar khud pata kar leta hai ki ye UAT hai ya production. */
 function detectEnv(apiBaseUrl) {
   return /uat|staging|test/i.test(apiBaseUrl || "") ? "uat" : "production";
 }
@@ -19,16 +18,11 @@ function banner(appEnv, apiBaseUrl) {
   ].join("\n");
 }
 
-/**
- * Har build ke saath dist/build-info.json likhta hai. server.js
- * proxy isi se pata karte hain ki ye UAT build hai ya production, isliye proxy
- * apne aap sahi API par jaata hai.
- */
 function buildInfoPlugin(env) {
   const apiBaseUrl = env.VITE_API_BASE_URL;
   const appEnv = env.VITE_APP_ENV || detectEnv(apiBaseUrl);
   return {
-    name: "desire-build-info",
+    name: "Hookah-build-info",
     apply: "build",
     generateBundle() {
       this.emitFile({
@@ -55,18 +49,16 @@ function buildInfoPlugin(env) {
 function assertEnv(env) {
   if (!env.VITE_API_BASE_URL) {
     throw new Error(
-      "[desire-lounge] .env me VITE_API_BASE_URL nahi mila.\n" +
+      "[Hookah-Pani-lounge] .env me VITE_API_BASE_URL not get.\n" +
         "Fix: cp .env.example .env  — phir usme production ya UAT wali line uncomment karo.",
     );
   }
   if (!/^https?:\/\//i.test(env.VITE_API_BASE_URL)) {
-    throw new Error(`[desire-lounge] VITE_API_BASE_URL valid URL nahi hai: ${env.VITE_API_BASE_URL}`);
+    throw new Error(`[Hookah-Pani-lounge] VITE_API_BASE_URL valid URL nahi hai: ${env.VITE_API_BASE_URL}`);
   }
 }
 
 export default defineConfig(({ command, mode }) => {
-  // Sirf `.env` load hoti hai — koi .env.production / .env.uat nahi.
-  // Isliye URL comment/uncomment karna hi kaafi hai.
   const env = loadEnv(mode, process.cwd(), "");
   assertEnv(env);
 

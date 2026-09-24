@@ -55,7 +55,7 @@ export default function Header() {
 
   return (
     <header className="lounge-header">
-      <a href="/" className="logo lounge-header__logo" aria-label="DESIRE SHEESHA LOUNGE home">
+      <a href="/" className="logo lounge-header__logo" aria-label="HOOKAH PANI LOUNGE home">
         <img
           src="https://restaurents-api.cylsys.com/Assets/theDesireLounge/Image/Logo/logo.webp"
           alt=""
@@ -64,8 +64,8 @@ export default function Header() {
           height="48"
         />
         <span className="logo__copy">
-          <span className="logo__text">DESIRE</span>
-          <span className="logo__tag">SHEESHA LOUNGE</span>
+          <span className="logo__text">HOOKAH</span>
+          <span className="logo__tag">PANI LOUNGE</span>
         </span>
       </a>
 

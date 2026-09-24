@@ -259,7 +259,7 @@ export default function ExclusiveOffersPage() {
     });
 
     window.location.assign(
-      `https://app.thedesirelounge.com/checkout?${params}`
+      `https://app.hookah-pani.com/checkout?${params}`
     );
   };
 
@@ -269,9 +269,9 @@ export default function ExclusiveOffersPage() {
       <div className="lounge-bg" aria-hidden="true"><div className="lounge-bg__image" style={{ backgroundImage: "url('/assets/images/index-hero-bg.webp')" }} /><div className="lounge-bg__overlay" /></div>
       <div className="lounge-shell bg-games-shell" id="app">
         <header className="lounge-header">
-          <a href="/" className="logo lounge-header__logo" aria-label="DESIRE SHEESHA LOUNGE home">
+          <a href="/" className="logo lounge-header__logo" aria-label="HOOKAH PANI LOUNGE home">
             <img src="https://restaurents-api.cylsys.com/Assets/theDesireLounge/Image/Logo/logo.webp" alt="" className="logo__mark" width="48" height="48" />
-            <span className="logo__copy"><span className="logo__text">DESIRE</span><span className="logo__tag">SHEESHA LOUNGE</span></span>
+            <span className="logo__copy"><span className="logo__text">HOOKAH</span><span className="logo__tag">PANI LOUNGE</span></span>
           </a>
           <div className="lounge-header__actions">
             <a href="/#services" className="bg-games-back" aria-label="Back to Digital Lounge"><span>Lounge</span></a>
@@ -482,7 +482,7 @@ export default function ExclusiveOffersPage() {
 </button>
               </>
             )}
-            <p className="offer-sheet__brand">Desire Sheesha Lounge - Customer Offers &amp; Packages</p>
+            <p className="offer-sheet__brand">Hookah Pani Lounge - Customer Offers &amp; Packages</p>
           </section></article>
         </main>
       </div>

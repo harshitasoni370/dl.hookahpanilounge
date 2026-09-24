@@ -26,11 +26,11 @@ import { URLS } from "./config/urls";
 import { getImageUrl } from "./utils/imageUrl";
 import { notifyWhatsApp, buildReservationWhatsAppMessage } from "./utils/whatsapp";
 
-const MENU_APP_URL = import.meta.env.VITE_MENU_APP_URL || "https://app.thedesirelounge.com";
-const RESERVATION_URL = import.meta.env.VITE_RESERVATION_URL || "https://thedesirelounge.com/";
-const LIVE_SPORTS_URL = import.meta.env.VITE_LIVE_SPORTS_URL || "https://thedesirelounge.com/live-sports";
-const EVENTS_URL = import.meta.env.VITE_EVENTS_URL || "https://thedesirelounge.com/events";
-const LOGO_URL = "https://restaurents-api.cylsys.com/Assets/theDesireLounge/Image/Logo/logo.webp";
+const MENU_APP_URL = import.meta.env.VITE_MENU_APP_URL || "https://app.hookah-pani.com";
+const RESERVATION_URL = import.meta.env.VITE_RESERVATION_URL || "https://hookah-pani.com/";
+const LIVE_SPORTS_URL = import.meta.env.VITE_LIVE_SPORTS_URL || "https://hookah-pani.com/live-sports";
+const EVENTS_URL = import.meta.env.VITE_EVENTS_URL || "https://hookah-pani.com/events";
+const LOGO_URL = import.meta.env.VITE_LOGO_URL || "https://hookah-pani.com/assets/images/logo.webp?v=20260821";
 const DEFAULT_RESERVATION_MODULE_ID = "3e340f23-d842-47f0-98e8-b0d458dc22dd";
 const DEFAULT_CELEBRATION_MODULE_IDS = {
   birthday: "02861404-4450-4d04-8461-679f3e8e09e3",
@@ -284,7 +284,7 @@ function getMembershipContext(search, qrContext, headerModules = []) {
 
   const membershipModuleId = getModuleIdByName(
     headerModules,
-    "Desire Privilege Membership"
+    "Hookah Privilege Membership"
   );
 
   return {
@@ -754,8 +754,8 @@ export default function App() {
     'src="assets/images/careem.avif"',
     'src="/assets/images/careem.avif"',
   ).replaceAll("assets/images/logo.webp?v=20260821", LOGO_URL)
-    .replaceAll('href="https://thedesirelounge.com/events.html"', `href="${EVENTS_URL}"`)
-    .replaceAll('href="https://thedesirelounge.com/live-sports.html"', `href="${LIVE_SPORTS_URL}"`);
+    .replaceAll('href="https://hookah-pani.com/events.html"', `href="${EVENTS_URL}"`)
+    .replaceAll('href="https://hookah-pani.com/live-sports.html"', `href="${LIVE_SPORTS_URL}"`);
   useEffect(() => {
     dispatch(fetchQrContext(location.search));
   }, [location.search]);
@@ -1416,7 +1416,7 @@ export default function App() {
     }
 
     loading.remove();
-    const name = membership.name || membership.membershipName || "Desire Privilege Membership";
+    const name = membership.name || membership.membershipName || "Hookah Privilege Membership";
     const price = membership.priceLabel || membership.price || "";
     const description = membership.subtitle || "";
     const details = JSON.stringify({
@@ -1427,7 +1427,7 @@ export default function App() {
       terms: membership.terms || "",
       features: membership.features || [],
       type: "membership",
-      categoryName: "Desire Privilege Membership",
+      categoryName: "Hookah Privilege Membership",
       category: "MEMBERSHIP",
       bookingType: "Membership",
       moduleId: context.moduleId,
