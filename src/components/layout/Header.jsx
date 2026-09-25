@@ -57,7 +57,7 @@ export default function Header() {
     <header className="lounge-header">
       <a href="/" className="logo lounge-header__logo" aria-label="HOOKAH PANI LOUNGE home">
         <img
-          src="https://restaurents-api.cylsys.com/Assets/theDesireLounge/Image/Logo/logo.webp"
+          src="https://restaurents-api.cylsys.com/Assets/hookah-pani/Image/Logo/logo.webp"
           alt=""
           className="logo__mark"
           width="48"
