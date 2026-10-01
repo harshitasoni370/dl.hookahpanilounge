@@ -52,7 +52,7 @@ export default function Terms() {
                 </p>
                 <p>
                   Website:
-                  <a href="https://hookah-pani.com/" rel="noopener noreferrer">thedesirelounge.com</a>.
+                  <a href="https://hookah-pani.com/" rel="noopener noreferrer">hookah-pani.com</a>.
                   Digital Lounge: this page and related lounge screens in-venue.
                 </p>
               </section>
@@ -92,7 +92,7 @@ export default function Terms() {
                 <h2>4. Reservations</h2>
                 <p>
                   Tables can be reserved through
-                  <a href="https://hookah-pani.com/#reserve" rel="noopener noreferrer">thedesirelounge.com</a>,
+                  <a href="https://hookah-pani.com/#reserve" rel="noopener noreferrer">hookah-pani.com</a>,
                   WhatsApp, or in person. We confirm bookings on WhatsApp at
                   <a href="https://wa.me/971509002202">+971 50 900 2202</a>.
                 </p>
@@ -242,7 +242,7 @@ export default function Terms() {
                   </p>
                   <p>
                     Website:
-                    <a href="https://hookah-pani.com/" rel="noopener noreferrer">thedesirelounge.com</a>
+                    <a href="https://hookah-pani.com/" rel="noopener noreferrer">hookah-pani.com</a>
                   </p>
                 </div>
               </section>

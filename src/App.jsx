@@ -30,7 +30,7 @@ const MENU_APP_URL = import.meta.env.VITE_MENU_APP_URL || "https://app.hookah-pa
 const RESERVATION_URL = import.meta.env.VITE_RESERVATION_URL || "https://hookah-pani.com/";
 const LIVE_SPORTS_URL = import.meta.env.VITE_LIVE_SPORTS_URL || "https://hookah-pani.com/live-sports";
 const EVENTS_URL = import.meta.env.VITE_EVENTS_URL || "https://hookah-pani.com/events";
-const LOGO_URL = import.meta.env.VITE_LOGO_URL || "https://hookah-pani.com/assets/images/logo.webp?v=20260821";
+const LOGO_URL = import.meta.env.VITE_LOGO_URL || "https://restaurents-api.cylsys.com/Assets/hookah-pani/Image/Logo/logo.webp";
 const DEFAULT_RESERVATION_MODULE_ID = "3e340f23-d842-47f0-98e8-b0d458dc22dd";
 const DEFAULT_CELEBRATION_MODULE_IDS = {
   birthday: "02861404-4450-4d04-8461-679f3e8e09e3",

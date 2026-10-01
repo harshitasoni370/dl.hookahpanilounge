@@ -112,7 +112,7 @@ export default function Privacy() {
                 </ul>
                 <p>
                   Third-party websites linked from the Digital Lounge (including
-                  <a href="https://hookah-pani.com/" rel="noopener noreferrer">thedesirelounge.com</a>
+                  <a href="https://hookah-pani.com/" rel="noopener noreferrer">hookah-pani.com</a>
                   and social profiles) have their own privacy notices.
                 </p>
               </section>
@@ -212,7 +212,7 @@ export default function Privacy() {
                   </p>
                   <p>
                     Website:
-                    <a href="https://hookah-pani.com/" rel="noopener noreferrer">thedesirelounge.com</a>
+                    <a href="https://hookah-pani.com/" rel="noopener noreferrer">hookah-pani.com</a>
                   </p>
                 </div>
               </section>

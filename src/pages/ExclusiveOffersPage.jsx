@@ -270,7 +270,7 @@ export default function ExclusiveOffersPage() {
       <div className="lounge-shell bg-games-shell" id="app">
         <header className="lounge-header">
           <a href="/" className="logo lounge-header__logo" aria-label="HOOKAH PANI LOUNGE home">
-            <img src="https://restaurents-api.cylsys.com/Assets/theDesireLounge/Image/Logo/logo.webp" alt="" className="logo__mark" width="48" height="48" />
+            <img src="https://restaurents-api.cylsys.com/Assets/hookah-pani/Image/Logo/logo.webp" alt="" className="logo__mark" width="48" height="48" />
             <span className="logo__copy"><span className="logo__text">HOOKAH</span><span className="logo__tag">PANI LOUNGE</span></span>
           </a>
           <div className="lounge-header__actions">
